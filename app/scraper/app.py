@@ -17,7 +17,7 @@ import sys, pathlib
 app_dir = pathlib.Path(__file__).resolve().parent.parent  # BitBashPrj/app
 if str(app_dir) not in sys.path:
     sys.path.insert(0, str(app_dir))
-from models import Job, session  # type: ignore
+from api.models import Job, session  # type: ignore
 
 
 # ---------- Helper utilities ----------
