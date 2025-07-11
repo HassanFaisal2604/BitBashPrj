@@ -3,7 +3,11 @@ from sqlalchemy import create_engine, Column, String
 # SQLAlchemy 2.0+: import declarative_base from orm to avoid deprecation warning
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
+# Load env vars
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # --- 1. SQLAlchemy setup ---
 Base = declarative_base()
@@ -23,14 +27,18 @@ class Job(Base):
     Job_Type = Column(String)
 
 # --- 2. PostgreSQL connection (Neon-compatible) ---
-# Replace these with your Neon.tech DB credentials
-DB_USER = os.getenv("NEON_USER", "neondb_owner")
-DB_PASS = os.getenv("NEON_PASS", "npg_mH3QnYdtP9hS")
-DB_HOST = os.getenv("NEON_HOST", "your_db_host")
-DB_PORT = os.getenv("NEON_PORT", "5432")
-DB_NAME = os.getenv("NEON_DB", "your_db_name")
+# Preferred: full URL in .env (e.g., DATABASE_URL="postgresql+psycopg2://user:pass@host/db?sslmode=require")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-DATABASE_URL = "postgresql+psycopg2://neondb_owner:npg_mH3QnYdtP9hS@ep-steep-rice-ae1u38d4-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+if not DATABASE_URL:
+    # Fallback: build from individual parts
+    DB_USER = os.getenv("NEON_USER", "")
+    DB_PASS = os.getenv("NEON_PASS", "")
+    DB_HOST = os.getenv("NEON_HOST", "localhost")
+    DB_PORT = os.getenv("NEON_PORT", "5432")
+    DB_NAME = os.getenv("NEON_DB", "postgres")
+    DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}?sslmode=require"
+
 engine = create_engine(DATABASE_URL)
 
 # Create table if it doesn't exist
