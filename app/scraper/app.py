@@ -11,11 +11,13 @@ from selenium.webdriver.chrome.options import Options
 import time
 import re
 import argparse
+# Ensure parent 'app' directory is on PYTHONPATH then import models directly
 import sys, pathlib
-root_dir = pathlib.Path(__file__).resolve().parent.parent
-if str(root_dir) not in sys.path:
-    sys.path.insert(0, str(root_dir))
-from app.models import Job, session        # reuse existing connection
+
+app_dir = pathlib.Path(__file__).resolve().parent.parent  # BitBashPrj/app
+if str(app_dir) not in sys.path:
+    sys.path.insert(0, str(app_dir))
+from models import Job, session  # type: ignore
 
 
 # ---------- Helper utilities ----------
@@ -156,18 +158,6 @@ for current_page in range(1, args.pages + 1):
             )
 
             session.merge(job_obj)          # DB UPSERT
-            # job_data.append({
-            #     "Job Title": job_title,
-            #     "Company Name": company_name,
-            #     "Location": location,
-            #     "Posting Date": posting_date,
-            #     "Job URL": job_link,
-            #     "Company URL": company_url,
-            #     "Salary": salary,
-            #     "Tags": tags,
-            #     "Job Type": job_type,
-            #     "Job ID": job_id
-            # })
         except NoSuchElementException:
             continue
     

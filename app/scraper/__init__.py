@@ -1,0 +1,1 @@
+"""Scraper package for collecting jobs from ActuaryList.""" 
