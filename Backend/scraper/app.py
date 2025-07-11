@@ -14,9 +14,9 @@ import re
 # Ensure parent Backend directory is on PYTHONPATH then import models directly
 import sys, pathlib
 
-backend_dir = pathlib.Path(__file__).resolve().parent.parent  # BitBashPrj/Backend
-if str(backend_dir) not in sys.path:
-    sys.path.insert(0, str(backend_dir))
+project_root = pathlib.Path(__file__).resolve().parent.parent.parent  # BitBashPrj/
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 from Backend.api.models import Job, session  # type: ignore
 
 
