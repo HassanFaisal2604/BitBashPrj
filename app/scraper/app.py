@@ -10,7 +10,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 import time
 import re
-import argparse
+
 # Ensure parent 'app' directory is on PYTHONPATH then import models directly
 import sys, pathlib
 
@@ -62,13 +62,10 @@ def close_popups():
 url = "https://www.actuarylist.com/"
 print(f"Loading {url}...")
 
-# Parse command-line arguments
-parser = argparse.ArgumentParser(description="Scrape ActuaryList jobs")
-parser.add_argument("--pages", type=int, default=2, help="Number of pages to scrape (default: 2)")
-args = parser.parse_args()
+# Set the number of pages to scrape (default: 2). Adjust here if you need more pages.
+pages_to_scrape = 2
 
-
-for current_page in range(1, args.pages + 1):
+for current_page in range(1, pages_to_scrape + 1):
     page_url = url if current_page == 1 else f"{url}?page={current_page}"
     print(f"Navigating to {page_url} …")
     driver.get(page_url)
@@ -161,7 +158,7 @@ for current_page in range(1, args.pages + 1):
         except NoSuchElementException:
             continue
     
-    if current_page == args.pages:
+    if current_page == pages_to_scrape:
         break  # finished requested pages; loop will exit naturally
 
 # Clean up the browser once scraping is complete
