@@ -14,6 +14,11 @@ load_dotenv()
 # --- 1. SQLAlchemy setup ---
 Base = declarative_base()
 
+# --------------------------------------------------
+#   Job ORM model
+# --------------------------------------------------
+
+
 class Job(Base):
     __tablename__ = 'jobs'
 
@@ -27,6 +32,30 @@ class Job(Base):
     Salary = Column(String)
     Tags = Column(String)
     Job_Type = Column(String)
+
+    # ------------------------------
+    # Helper / utility methods
+    # ------------------------------
+    def to_dict(self) -> dict:
+        """Return a serialisable representation of the Job record."""
+        return {
+            "id": self.Job_ID,
+            "title": self.Job_Title,
+            "company": self.Company_Name,
+            "location": self.Location,
+            "posting_date": self.Posting_Date,
+            "job_type": self.Job_Type,
+            "tags": self.Tags,
+            "url": self.Job_URL,
+            "company_url": self.Company_URL,
+            "salary": self.Salary,
+        }
+
+    # Provide a convenience class-level query attribute similar to Flask-SQLAlchemy
+    @classmethod
+    def query(cls):  # type: ignore
+        """Shorthand to enable Job.query semantics."""
+        return session.query(cls)
 
 # --- 2. PostgreSQL connection (Neon-compatible) ---
 # Preferred: full URL in .env (e.g., DATABASE_URL="postgresql+psycopg2://user:pass@host/db?sslmode=require")

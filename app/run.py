@@ -1,18 +1,25 @@
-import os
-from dotenv import load_dotenv
+# Flask extensions
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from flask_cors import CORS
 
-# Find the .env file in the root of the backend folder
-basedir = os.path.abspath(os.path.dirname(__file__))
-load_dotenv(os.path.join(basedir, '.env'))
+# Local configuration
+from .config import Config
 
-class Config:
-    """Set Flask configuration variables from .env file."""
+db = SQLAlchemy()
+migrate = Migrate()
 
-    # General Config
-    SECRET_KEY = os.getenv('SECRET_KEY', 'my_precious_secret_key')
-    FLASK_APP = 'run.py'
-    FLASK_DEBUG = True # Keep this True for development
+def create_app(config_class=Config):
+    app = Flask(__name__)
+    app.config.from_object(config_class)
 
-    # Database
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    db.init_app(app)
+    migrate.init_app(app, db)
+    CORS(app) # Enable CORS
+
+    # Import and register blueprints (placed after app & extensions init to avoid circular imports)
+    from .api.routes import bp as api_bp
+    app.register_blueprint(api_bp, url_prefix='/api')
+
+    return app
