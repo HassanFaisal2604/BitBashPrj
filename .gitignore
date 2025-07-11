@@ -1,0 +1,6 @@
+#__ Python cache files
+__pycache__/ 
+node_modules/
+.DS_Store
+Frontend/my-react-app/dist/
+Frontend/my-react-app/.vite

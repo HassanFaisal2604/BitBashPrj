@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 
 # Import Job model and database session from models.py
 from .models import Job, session
+from datetime import datetime
 
 # All routes defined in this file will automatically be prefixed with /api (set in run.py)
 bp = Blueprint('api', __name__)
@@ -33,9 +34,9 @@ def get_jobs():
     # --- Sorting ---
     sort = request.args.get('sort')
     if sort == 'posting_date_asc':
-        query = query.order_by(Job.Job_ID.asc())  # Proxy for oldest first
-    else:  # Default & posting_date_desc
-        query = query.order_by(Job.Job_ID.desc())  # Newest first (approx.)
+        query = query.order_by(Job.scraped_on.asc())
+    else:
+        query = query.order_by(Job.scraped_on.desc())
 
     jobs = query.all()
     return jsonify([job.to_dict() for job in jobs])
@@ -78,6 +79,7 @@ def create_job():
         Job_URL=data.get('url', '#'),
         Company_URL=data.get('company_url', ''),
         Salary=data.get('salary', 'Not specified'),
+        scraped_on=datetime.utcnow(),
     )
 
     session.add(new_job)

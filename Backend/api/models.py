@@ -1,13 +1,14 @@
 # Optional CSV seed helper
 import pandas as pd
 from pathlib import Path
-from sqlalchemy import create_engine, Column, String, UniqueConstraint
+from sqlalchemy import create_engine, Column, String, UniqueConstraint, DateTime
 # SQLAlchemy 2.0+: import declarative_base from orm to avoid deprecation warning
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 # Load env vars
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 
 load_dotenv()
 
@@ -36,6 +37,7 @@ class Job(Base):
     Salary = Column(String)
     Tags = Column(String, nullable=False)
     Job_Type = Column(String, nullable=False)
+    scraped_on = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # ------------------------------
     # Helper / utility methods
@@ -53,6 +55,7 @@ class Job(Base):
             "url": self.Job_URL,
             "company_url": self.Company_URL,
             "salary": self.Salary,
+            "scraped_on": self.scraped_on.isoformat() if isinstance(self.scraped_on, datetime) else None,
         }
 
     # Provide a convenience class-level query attribute similar to Flask-SQLAlchemy

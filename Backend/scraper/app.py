@@ -10,6 +10,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 import time
 import re
+from datetime import datetime
 
 # Ensure parent Backend directory is on PYTHONPATH then import models directly
 import sys, pathlib
@@ -152,6 +153,7 @@ for current_page in range(1, pages_to_scrape + 1):
                 Salary=salary,
                 Tags=tags,
                 Job_Type=job_type,
+                scraped_on=datetime.utcnow(),
             )
 
             session.merge(job_obj)          # DB UPSERT

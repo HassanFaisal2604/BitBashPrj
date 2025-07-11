@@ -1,85 +1,120 @@
-# BitBash Actuary Job Scraper
+# BitBash – Full-Stack Actuary Job Board
 
-This project scrapes actuarial-job listings from [ActuaryList](https://www.actuarylist.com/) and persists them in a PostgreSQL database.  
-The codebase is intentionally minimal: **no web framework / API endpoints have been implemented yet**—the focus is on reliable data collection and storage.
+This repository contains **both** the Flask API/Selenium scraper (in `Backend/`) **and** the React + Vite single-page application (in `Frontend/`). Together they form a complete job-listing web platform that pulls live actuarial vacancies from ActuaryList.com and provides a full CRUD interface to manage them.
 
-## Project Layout
-```
-BitBashPrj/
-│
-├── Backend/
-│   ├── api/
-│   │   ├── models.py         # SQLAlchemy models + DB session helper
-│   │   └── routes.py         # (empty placeholder for future API routes)
-│   │
-│   ├── scraper/
-│   │   ├── __init__.py       # marks scraper as a package
-│   │   └── app.py            # Selenium logic that performs the scrape
-│   └── requirements.txt      # Python dependencies
-│
-├── README.md                 # ← you are here
-└── venv/                     # (optional) local virtual-env, excluded from VCS
-```
+[![Demo Screenshot](link_to_your_screenshot.png)](link_to_your_video_demo)
 
-## Quick-start
-1. **Clone & create a virtual environment**
-   ```bash
-   git clone https://github.com/<your-org>/BitBashPrj.git
-   cd BitBashPrj
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-2. **Install dependencies**
-   ```bash
-   pip install -r Backend/requirements.txt
-   ```
-
-3. **Configure the database connection**  
-   Either supply a single `DATABASE_URL` environment variable (preferred) **or** the individual `NEON_*` parts.  
-   Create a `.env` file in the repository root (or export variables in your shell):
-   ```ini
-   # .env
-   DATABASE_URL=postgresql+psycopg2://<user>:<password>@<host>:<port>/<db>?sslmode=require
-   # – OR –
-   NEON_USER=<user>
-   NEON_PASS=<password>
-   NEON_HOST=<host>
-   NEON_PORT=5432
-   NEON_DB=<db>
-   ```
-   The scraper will automatically create the `jobs` table if it does not yet exist.
-
-4. **Run the scraper**
-   ```bash
-   python Backend/scraper/app.py
-   ```
-   By default the script scrapes **two pages** of job listings.  
-   To change this, open `Backend/scraper/app.py` and modify the constant `pages_to_scrape` near the top of the file.
-
-5. **Run the Flask API server**  
-   Activate your venv (see step&nbsp;1) then:
-   ```bash
-   export FLASK_APP=Backend.run:create_app   # module:function
-   export FLASK_ENV=development              # enables reloader & debugger
-   flask run
-   ```
-
-## Dependencies
-See [`Backend/requirements.txt`](Backend/requirements.txt).  
-Key libraries:
-- **Selenium 4** – browser automation.
-- **webdriver-manager** – automatic ChromeDriver handling.
-- **SQLAlchemy 2** – ORM & DB connection management.
-- **psycopg2-binary** – PostgreSQL driver.
-- **pandas** – optional CSV seeding helper.
-- **python-dotenv** – loads environment variables from `.env`.
-
-## Notes & Troubleshooting
-1. **Headless Chrome**: if you prefer running Chrome without a UI, add `chrome_options.add_argument("--headless")` in `Backend/scraper/app.py`.
-2. **Pop-ups**: the scraper auto-closes common modal dialogs; you may need to adapt selectors if the site UI changes.
-3. **Database SSL**: Neon requires `sslmode=require`—the connection URI in the example already includes it.
-4. **Table already exists**: The creation step is wrapped in `CREATE TABLE IF NOT EXISTS`; safe to run multiple times.
+**[➡️ Watch the Full Video Demo Here](link_to_your_video_demo)**
 
 ---
-© 2024 BitBash – released under the MIT License. 
+
+## Features
+
+-   **Backend:** A robust Flask API with full CRUD functionality, server-side filtering (by keyword, job type, location, tags), and sorting.
+-   **Database:** Uses PostgreSQL, managed with SQLAlchemy and Flask-Migrate.
+-   **Scraper:** A Selenium-based bot to populate the database with live job data from ActuaryList.
+-   **Frontend:** A responsive and modern React UI built with Vite and styled with Tailwind CSS. Features include modals for adding/editing, toast notifications for feedback, and loading skeletons for a smooth user experience.
+
+## Project Structure
+
+```
+BitBashPrj/
+├── Backend/
+│   ├── api/
+│   │   ├── __init__.py     # Flask App Factory (create_app)
+│   │   ├── models.py       # SQLAlchemy database models
+│   │   └── routes.py       # All API endpoint logic (CRUD, filtering)
+│   ├── scraper/
+│   │   └── app.py          # Selenium scraper script
+│   ├── migrations/         # (optional) Flask-Migrate migration scripts
+│   ├── .env.example        # Example environment variables
+│   ├── config.py           # Application configuration
+│   ├── requirements.txt    # Python dependencies
+│   └── run.py              # Script to run the Flask server
+│
+└── Frontend/
+    ├── src/
+    │   ├── api/
+    │   │   └── jobService.js # Centralized API call functions
+    │   ├── components/       # Reusable React components (JobCard, FilterBar, etc.)
+    │   └── ...
+    ├── .env.example
+    ├── package.json
+    └── ...
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+-   Python (3.9+)
+-   Node.js (18.x+) and npm
+-   A running PostgreSQL database instance (local or cloud-hosted like Neon)
+
+### 1. Backend Setup
+
+First, set up and run the Flask API server.
+
+```bash
+# 1. Clone the repository and navigate into the backend directory
+git clone https://github.com/<your-repo>/BitBashPrj.git
+cd BitBashPrj/Backend
+
+# 2. Create and activate a Python virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# 3. Install Python dependencies
+pip install -r requirements.txt  # install Backend dependencies
+
+# 4. Configure your database connection
+#    Copy the example .env file and fill in your database URL
+cp .env.example .env
+#    Now, edit the .env file with your credentials.
+
+# 5. (Optional) Run database migrations
+#    If you decide to enable Flask-Migrate, initialise and apply the migrations here.
+#    Otherwise, the tables will be created automatically the first time you run the app/scraper.
+
+
+# 6. (Optional) Populate the database with live data
+#    This will run the Selenium scraper.
+python scraper/app.py
+
+# 7. Run the Flask API server
+#    Stay in the repository root so that the `Backend` package can be resolved.
+export FLASK_APP=Backend.run:create_app   # module:function
+export FLASK_ENV=development              # enables reloader & debugger
+flask run
+```
+Your backend is now running on `http://127.0.0.1:5000`.
+
+### 2. Frontend Setup
+
+In a **new terminal window**, set up and run the React client.
+
+```bash
+# 1. Navigate into the frontend directory
+cd ../Frontend/my-react-app
+
+# 2. Install Node.js dependencies
+npm install
+
+# 3. Configure the API endpoint
+#    The frontend needs to know where the backend is running.
+cp .env.example .env
+#    The default value in the .env file should work for local development.
+
+# 4. Run the React development server
+npm run dev
+```
+Your frontend is now running on `http://localhost:5173` (or another port if 5173 is busy) and is connected to your backend.
+
+---
+
+## Key Dependencies
+
+-   **Backend:** Flask, SQLAlchemy, Flask-Migrate, Selenium, python-dotenv.
+-   **Frontend:** React, Vite, Axios, Tailwind CSS, react-hot-toast.
