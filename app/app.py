@@ -8,10 +8,14 @@ except ImportError:
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
-import pandas as pd
 import time
 import re
 import argparse
+import sys, pathlib
+root_dir = pathlib.Path(__file__).resolve().parent.parent
+if str(root_dir) not in sys.path:
+    sys.path.insert(0, str(root_dir))
+from app.models import Job, session        # reuse existing connection
 
 
 # ---------- Helper utilities ----------
@@ -61,7 +65,6 @@ parser = argparse.ArgumentParser(description="Scrape ActuaryList jobs")
 parser.add_argument("--pages", type=int, default=2, help="Number of pages to scrape (default: 2)")
 args = parser.parse_args()
 
-job_data = []  # collect across all pages
 
 for current_page in range(1, args.pages + 1):
     page_url = url if current_page == 1 else f"{url}?page={current_page}"
@@ -139,18 +142,32 @@ for current_page in range(1, args.pages + 1):
             elif "part-time" in tags_lower or "part time" in tags_lower:
                 job_type = "Part-Time"
 
-            job_data.append({
-                "Job Title": job_title,
-                "Company Name": company_name,
-                "Location": location,
-                "Posting Date": posting_date,
-                "Job URL": job_link,
-                "Company URL": company_url,
-                "Salary": salary,
-                "Tags": tags,
-                "Job Type": job_type,
-                "Job ID": job_id
-            })
+            job_obj = Job(
+                Job_ID=job_id,
+                Job_Title=job_title,
+                Company_Name=company_name,
+                Location=location,
+                Posting_Date=posting_date,
+                Job_URL=job_link,
+                Company_URL=company_url,
+                Salary=salary,
+                Tags=tags,
+                Job_Type=job_type,
+            )
+
+            session.merge(job_obj)          # DB UPSERT
+            # job_data.append({
+            #     "Job Title": job_title,
+            #     "Company Name": company_name,
+            #     "Location": location,
+            #     "Posting Date": posting_date,
+            #     "Job URL": job_link,
+            #     "Company URL": company_url,
+            #     "Salary": salary,
+            #     "Tags": tags,
+            #     "Job Type": job_type,
+            #     "Job ID": job_id
+            # })
         except NoSuchElementException:
             continue
     
@@ -160,9 +177,7 @@ for current_page in range(1, args.pages + 1):
 # Clean up the browser once scraping is complete
 driver.quit()
 
-if job_data:
-    df = pd.DataFrame(job_data)
-    df.to_csv("actuary_jobs.csv", index=False)
-    print(df.head())
-else:
-    print("No job data collected")
+# Commit all upserts to the database (default behaviour)
+session.commit()
+
+session.close()

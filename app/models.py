@@ -1,4 +1,6 @@
+# Optional CSV seed helper
 import pandas as pd
+from pathlib import Path
 from sqlalchemy import create_engine, Column, String
 # SQLAlchemy 2.0+: import declarative_base from orm to avoid deprecation warning
 from sqlalchemy.orm import declarative_base
@@ -46,29 +48,33 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
 
-# --- 3. Read CSV and upload ---
-csv_path = "app/actuary_jobs.csv"
-df = pd.read_csv(csv_path)
+# --- 3. Optional CSV seed ---
+csv_path = Path(__file__).with_name("actuary_jobs.csv")
 
-for _, row in df.iterrows():
-    job = Job(
-        Job_ID=str(row['Job ID']),  # ensure varchar comparison uses string
-        Job_Title=row['Job Title'],
-        Company_Name=row['Company Name'],
-        Location=row['Location'],
-        Posting_Date=row['Posting Date'],
-        Job_URL=row['Job URL'],
-        Company_URL=row['Company URL'],
-        Salary=row['Salary'],
-        Tags=row['Tags'],
-        Job_Type=row['Job Type']
-    )
-    session.merge(job)  # merge avoids duplicate primary key error
-session.commit()
-print(f"✅ Uploaded {len(df)} jobs to database.")
+if csv_path.exists():
+    df = pd.read_csv(csv_path)
+    for _, row in df.iterrows():
+        job = Job(
+            Job_ID=str(row['Job ID']),  # ensure varchar comparison uses string
+            Job_Title=row['Job Title'],
+            Company_Name=row['Company Name'],
+            Location=row['Location'],
+            Posting_Date=row['Posting Date'],
+            Job_URL=row['Job URL'],
+            Company_URL=row['Company URL'],
+            Salary=row['Salary'],
+            Tags=row['Tags'],
+            Job_Type=row['Job Type']
+        )
+        session.merge(job)
+    session.commit()
+    print(f"✅ Uploaded {len(df)} jobs to database from CSV seed.")
 
-# --- 4. Fetch and print for testing    
-print("\n=== Jobs in database ===")
-for job in session.query(Job).order_by(Job.Job_ID).limit(10):   # change limit as you like
-    print(f"{job.Job_ID:>6}  {job.Job_Title[:40]:40}  {job.Company_Name}")
+# --- 4. (Optional) Debug print of first few rows ---
+try:
+    print("\n=== Sample jobs ===")
+    for job in session.query(Job).order_by(Job.Job_ID).limit(10):
+        print(f"{job.Job_ID:>6}  {job.Job_Title[:40]:40}  {job.Company_Name}")
+except Exception:
+    pass  # ignore errors if the table is empty
 
