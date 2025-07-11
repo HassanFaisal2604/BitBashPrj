@@ -1,12 +1,23 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+# Import WebDriverWait with compatibility for different selenium package layouts
+try:
+    from selenium.webdriver.support.wait import WebDriverWait  # pylint: disable=unused-import
+except ImportError:
+    from selenium.webdriver.support.ui import WebDriverWait  # type: ignore
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 import pandas as pd
 import time
 import re
+import argparse
+
+
+# ---------- Helper utilities ----------
+def _strip_leading_symbols(txt: str) -> str:
+    """Remove leading emojis or other non-alphanumeric symbols while preserving letters/digits."""
+    return re.sub(r"^[^\w]+", "", txt).strip()
 
 # --- 1. SETUP SELENIUM ---
 # Set up Chrome options
@@ -22,25 +33,14 @@ driver = webdriver.Chrome(options=chrome_options)
 
 driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
-# --- 2. LOAD THE WEBPAGE ---
-url = "https://www.actuarylist.com/"
-print(f"Loading {url}...")
-
-
-driver.get(url)
-wait = WebDriverWait(driver, 15)
-
-try:
-    print("Waiting for page to load...")
-    time.sleep(5)
-
-    # Close popup if present
+def close_popups():
+    """Attempt to close any modal/pop-up that may obscure the page."""
     close_selectors = [
         "button[type='button'].rounded-md.bg-white.text-gray-400",
         "button[aria-label*='Close']",
         "button[title*='Close']",
         "button[class*='close']",
-        "[data-testid*='close']"
+        "[data-testid*='close']",
     ]
     for sel in close_selectors:
         try:
@@ -52,19 +52,37 @@ try:
         except NoSuchElementException:
             continue
 
+# --- 2. LOAD THE WEBPAGE ---
+url = "https://www.actuarylist.com/"
+print(f"Loading {url}...")
+
+# Parse command-line arguments
+parser = argparse.ArgumentParser(description="Scrape ActuaryList jobs")
+parser.add_argument("--pages", type=int, default=2, help="Number of pages to scrape (default: 2)")
+args = parser.parse_args()
+
+job_data = []  # collect across all pages
+
+for current_page in range(1, args.pages + 1):
+    page_url = url if current_page == 1 else f"{url}?page={current_page}"
+    print(f"Navigating to {page_url} …")
+    driver.get(page_url)
+    wait = WebDriverWait(driver, 15)
+    time.sleep(5)  # allow content to settle
+    close_popups()
+
     # Get all potential cards then filter those containing company element
     potential_cards = driver.find_elements(By.CSS_SELECTOR, "div[class*='job-card']")
-    print(f"Found {len(potential_cards)} potential cards")
+    print(f"Page {current_page}: Found {len(potential_cards)} potential cards")
 
     job_cards = []
     company_css = "p[class*='job-card__company']"
     for card in potential_cards:
         if card.find_elements(By.CSS_SELECTOR, company_css):
             job_cards.append(card)
-    print(f"Filtered to {len(job_cards)} valid cards")
+    print(f"Page {current_page}: Filtered to {len(job_cards)} valid cards")
 
-    job_data = []
-    for idx, card in enumerate(job_cards[:20]):
+    for idx, card in enumerate(job_cards):
         try:
             # Company
             company_name = card.find_element(By.CSS_SELECTOR, company_css).text.strip()
@@ -79,11 +97,16 @@ try:
                 loc_container = card.find_element(By.CSS_SELECTOR, loc_container_css)
                 # country
                 country_css = "a[class*='job-card__country']"
-                country_name = loc_container.find_element(By.CSS_SELECTOR, country_css).text.strip()
-                country_name = re.sub(r"^[^A-Za-z]*", "", country_name)  # strip flag emoji
+                country_name = _strip_leading_symbols(
+                    loc_container.find_element(By.CSS_SELECTOR, country_css).text
+                )
                 # cities
                 cities_css = "a[class*='job-card__location']"
-                cities = [c.text.strip() for c in loc_container.find_elements(By.CSS_SELECTOR, cities_css) if c.text.strip()]
+                cities = [
+                    _strip_leading_symbols(c.text)
+                    for c in loc_container.find_elements(By.CSS_SELECTOR, cities_css)
+                    if c.text.strip()
+                ]
                 location_parts = [country_name] + cities if country_name else cities
                 location = ", ".join(location_parts)
             except NoSuchElementException:
@@ -99,7 +122,8 @@ try:
             company_url = company_link_elems[0].get_attribute("href") if company_link_elems else ""
             # Salary
             sal_elems = card.find_elements(By.CSS_SELECTOR, "p[class*='job-card__salary']")
-            salary = sal_elems[0].text.strip() if sal_elems else "Not specified"
+            salary_raw = sal_elems[0].text.strip() if sal_elems else "Not specified"
+            salary = salary_raw.replace("💰", "").strip()
             # Tags
             tags_elems = card.find_elements(By.CSS_SELECTOR, "div[class*='job-card__tags'] a")
             tags_list = [t.text.strip() for t in tags_elems if t.text.strip()]
@@ -129,9 +153,12 @@ try:
             })
         except NoSuchElementException:
             continue
+    
+    if current_page == args.pages:
+        break  # finished requested pages; loop will exit naturally
 
-finally:
-    driver.quit()
+# Clean up the browser once scraping is complete
+driver.quit()
 
 if job_data:
     df = pd.DataFrame(job_data)
