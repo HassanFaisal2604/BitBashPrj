@@ -102,7 +102,12 @@ if csv_path.exists():
             Tags=row['Tags'],
             Job_Type=row['Job Type']
         )
-        session.merge(job)
+        try:
+            session.merge(job)
+            session.flush()            # forces the INSERT immediately
+        except Exception as e:
+            session.rollback()         # clears the failed transaction
+            print(f"Skipping job {row['Job ID']}: {e}")
     session.commit()
     print(f"✅ Uploaded {len(df)} jobs to database from CSV seed.")
 

@@ -2,6 +2,7 @@
 from flask import Flask
 # Only CORS needed; we use standalone SQLAlchemy engine in models
 from flask_cors import CORS
+from flask_migrate import Migrate
 
 # Local configuration
 from .config import Config
@@ -9,6 +10,9 @@ from .config import Config
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    # Initialize Flask-Migrate
+    migrate = Migrate(app, db)  # Assuming db is Flask-SQLAlchemy instance; adjust if needed
 
     # no Flask-SQLAlchemy integration; models manage their own session
     CORS(app) # Enable CORS
