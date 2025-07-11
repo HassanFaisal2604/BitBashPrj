@@ -7,7 +7,7 @@ The codebase is intentionally minimal: **no web framework / API endpoints have b
 ```
 BitBashPrj/
 │
-├── app/
+├── Backend/
 │   ├── api/
 │   │   ├── models.py         # SQLAlchemy models + DB session helper
 │   │   └── routes.py         # (empty placeholder for future API routes)
@@ -32,7 +32,7 @@ BitBashPrj/
 
 2. **Install dependencies**
    ```bash
-   pip install -r app/requirements.txt
+   pip install -r Backend/requirements.txt
    ```
 
 3. **Configure the database connection**  
@@ -52,13 +52,21 @@ BitBashPrj/
 
 4. **Run the scraper**
    ```bash
-   python app/scraper/app.py
+   python Backend/scraper/app.py
    ```
    By default the script scrapes **two pages** of job listings.  
-   To change this, open `app/scraper/app.py` and modify the constant `pages_to_scrape` near the top of the file.
+   To change this, open `Backend/scraper/app.py` and modify the constant `pages_to_scrape` near the top of the file.
+
+5. **Run the Flask API server**  
+   Activate your venv (see step&nbsp;1) then:
+   ```bash
+   export FLASK_APP=Backend.run:create_app   # module:function
+   export FLASK_ENV=development              # enables reloader & debugger
+   flask run
+   ```
 
 ## Dependencies
-See [`app/requirements.txt`](app/requirements.txt).  
+See [`Backend/requirements.txt`](Backend/requirements.txt).  
 Key libraries:
 - **Selenium 4** – browser automation.
 - **webdriver-manager** – automatic ChromeDriver handling.
@@ -68,7 +76,7 @@ Key libraries:
 - **python-dotenv** – loads environment variables from `.env`.
 
 ## Notes & Troubleshooting
-1. **Headless Chrome**: if you prefer running Chrome without a UI, add `chrome_options.add_argument("--headless")` in `app/scraper/app.py`.
+1. **Headless Chrome**: if you prefer running Chrome without a UI, add `chrome_options.add_argument("--headless")` in `Backend/scraper/app.py`.
 2. **Pop-ups**: the scraper auto-closes common modal dialogs; you may need to adapt selectors if the site UI changes.
 3. **Database SSL**: Neon requires `sslmode=require`—the connection URI in the example already includes it.
 4. **Table already exists**: The creation step is wrapped in `CREATE TABLE IF NOT EXISTS`; safe to run multiple times.

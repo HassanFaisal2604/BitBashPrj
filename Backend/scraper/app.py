@@ -11,13 +11,13 @@ from selenium.webdriver.chrome.options import Options
 import time
 import re
 
-# Ensure parent 'app' directory is on PYTHONPATH then import models directly
+# Ensure parent Backend directory is on PYTHONPATH then import models directly
 import sys, pathlib
 
-app_dir = pathlib.Path(__file__).resolve().parent.parent  # BitBashPrj/app
-if str(app_dir) not in sys.path:
-    sys.path.insert(0, str(app_dir))
-from api.models import Job, session  # type: ignore
+backend_dir = pathlib.Path(__file__).resolve().parent.parent  # BitBashPrj/Backend
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+from Backend.api.models import Job, session  # type: ignore
 
 
 # ---------- Helper utilities ----------

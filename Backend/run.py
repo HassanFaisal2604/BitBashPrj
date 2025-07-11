@@ -1,22 +1,24 @@
 # Flask extensions
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
+# Only CORS needed; we use standalone SQLAlchemy engine in models
 from flask_cors import CORS
 
 # Local configuration
 from .config import Config
 
-db = SQLAlchemy()
-migrate = Migrate()
-
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-    db.init_app(app)
-    migrate.init_app(app, db)
+    # no Flask-SQLAlchemy integration; models manage their own session
     CORS(app) # Enable CORS
+
+    # Ensure session is removed after request context ends
+    from .api.models import session as orm_session
+
+    @app.teardown_appcontext
+    def remove_session(exception=None):  # noqa: WPS430
+        orm_session.close()
 
     # Import and register blueprints (placed after app & extensions init to avoid circular imports)
     from .api.routes import bp as api_bp

@@ -55,6 +55,15 @@ def create_job():
         }), 400
 
     # Generate a new ID (use max+1 or uuid)
+
+    # Prevent duplicate (same title & company)
+    existing = Job.query().filter(
+        Job.Job_Title == data['title'],
+        Job.Company_Name == data['company']
+    ).first()
+    if existing:
+        return jsonify({'error': 'A job with the same title and company already exists.'}), 409
+
     from uuid import uuid4
     new_id = str(uuid4())
 

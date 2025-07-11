@@ -1,7 +1,7 @@
 # Optional CSV seed helper
 import pandas as pd
 from pathlib import Path
-from sqlalchemy import create_engine, Column, String
+from sqlalchemy import create_engine, Column, String, UniqueConstraint
 # SQLAlchemy 2.0+: import declarative_base from orm to avoid deprecation warning
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -22,16 +22,20 @@ Base = declarative_base()
 class Job(Base):
     __tablename__ = 'jobs'
 
+    __table_args__ = (
+        UniqueConstraint('Job_Title', 'Company_Name', name='uq_title_company'),
+    )
+
     Job_ID = Column(String, primary_key=True)
-    Job_Title = Column(String)
-    Company_Name = Column(String)
-    Location = Column(String)
-    Posting_Date = Column(String)
+    Job_Title = Column(String, nullable=False)
+    Company_Name = Column(String, nullable=False)
+    Location = Column(String, nullable=False)
+    Posting_Date = Column(String, nullable=False)
     Job_URL = Column(String)
     Company_URL = Column(String)
     Salary = Column(String)
-    Tags = Column(String)
-    Job_Type = Column(String)
+    Tags = Column(String, nullable=False)
+    Job_Type = Column(String, nullable=False)
 
     # ------------------------------
     # Helper / utility methods
