@@ -78,8 +78,20 @@ python scraper/app.py
 
 # 7. Run the Flask API server
 #    Stay in the repository root so that the `Backend` package can be resolved.
+```bash
+# macOS / Linux
 export FLASK_APP=Backend.run:create_app   # module:function
 export FLASK_ENV=development              # enables reloader & debugger
+
+# Windows (PowerShell)
+$env:FLASK_APP = "Backend.run:create_app"
+$env:FLASK_ENV = "development"
+
+# Windows (Command Prompt)
+set FLASK_APP=Backend.run:create_app
+set FLASK_ENV=development
+
+# Start the server
 flask run
 ```
 Your backend is now running on `http://127.0.0.1:5000`.
