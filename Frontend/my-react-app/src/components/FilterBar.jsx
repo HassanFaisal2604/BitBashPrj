@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Search, MapPin, Filter, X, ChevronDown, Globe, Briefcase, Clock, DollarSign, TrendingUp } from 'lucide-react'
+import { Search, MapPin, Filter, X, ChevronDown, Globe, Briefcase, Clock, DollarSign } from 'lucide-react'
 
 function FilterBar({
   searchTerm,
@@ -49,7 +49,6 @@ function FilterBar({
     { value: 'oldest', label: 'Oldest First', icon: Clock },
     { value: 'salary_high', label: 'Highest Salary', icon: DollarSign },
     { value: 'salary_low', label: 'Lowest Salary', icon: DollarSign },
-    { value: 'relevance', label: 'Most Relevant', icon: TrendingUp },
   ]
 
   return (
