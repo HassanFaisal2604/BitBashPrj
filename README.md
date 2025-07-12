@@ -1,6 +1,6 @@
 # BitBash – Full-Stack Actuary Job Board
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-brightgreen)](https://bit-bash-prj.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-brightgreen)](https://bitbash-project.vercel.app/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
 [![React](https://img.shields.io/badge/React-18.0%2B-blue)](https://reactjs.org/)
@@ -8,7 +8,7 @@
 
 A complete job-listing web platform that pulls live actuarial vacancies from ActuaryList.com and provides a full CRUD interface to manage them. Built with modern web technologies and deployed on Vercel.
 
-**🚀 Live Demo:** https://bit-bash-prj.vercel.app/
+**🚀 Live Demo:** https://bitbash-project.vercel.app/
 
 ## 📋 Table of Contents
 
@@ -263,7 +263,7 @@ VITE_APP_NAME=BitBash Job Board
 
 ### Base URL
 - **Development:** `http://localhost:5000`
-- **Production:** `https://bit-bash-prj.vercel.app`
+- **Production:** `https://bitbash-project.vercel.app/`
 
 ### Endpoints
 
