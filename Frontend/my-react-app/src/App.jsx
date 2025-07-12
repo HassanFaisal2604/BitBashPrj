@@ -143,6 +143,8 @@ export default function App() {
       setTimeout(() => {
         setJobs((prev) => prev.map((j) => ({ ...j, flash: false })))
       }, 2000)
+      // Ensure user sees the newly added job at the top regardless of previous sort
+      setSortBy('newest')
       toast('Job posted successfully! 🎉', 'success')
     } catch (err) {
       toast(err.message || 'Failed to add job', 'error')
