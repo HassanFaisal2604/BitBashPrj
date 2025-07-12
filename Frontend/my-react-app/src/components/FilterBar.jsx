@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Search, MapPin, Filter, X, ChevronDown, Globe, Briefcase, Clock, DollarSign } from 'lucide-react'
+import { Search, Filter, X, ChevronDown, Globe, Briefcase, Clock, DollarSign } from 'lucide-react'
 
 function FilterBar({
   searchTerm,

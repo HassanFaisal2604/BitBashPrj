@@ -4,7 +4,12 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 import time
 import re
+import logging
 from datetime import datetime
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # Ensure parent Backend directory is on PYTHONPATH then import models directly
 import sys, pathlib
@@ -55,28 +60,28 @@ def close_popups():
 
 # --- 2. LOAD THE WEBPAGE ---
 url = "https://www.actuarylist.com/"
-print(f"Loading {url}...")
+logger.info(f"Starting scraper for {url}")
 
 # Set the number of pages to scrape (default: 2). Adjust here if you need more pages.
 pages_to_scrape = 2
 
 for current_page in range(1, pages_to_scrape + 1):
     page_url = url if current_page == 1 else f"{url}?page={current_page}"
-    print(f"Navigating to {page_url} …")
+    logger.info(f"Navigating to page {current_page}: {page_url}")
     driver.get(page_url)
     time.sleep(5)  # allow content to settle
     close_popups()
 
     # Get all potential cards then filter those containing company element
     potential_cards = driver.find_elements(By.CSS_SELECTOR, "div[class*='job-card']")
-    print(f"Page {current_page}: Found {len(potential_cards)} potential cards")
+    logger.info(f"Page {current_page}: Found {len(potential_cards)} potential cards")
 
     job_cards = []
     company_css = "p[class*='job-card__company']"
     for card in potential_cards:
         if card.find_elements(By.CSS_SELECTOR, company_css):
             job_cards.append(card)
-    print(f"Page {current_page}: Filtered to {len(job_cards)} valid cards")
+    logger.info(f"Page {current_page}: Filtered to {len(job_cards)} valid cards")
 
     for card in job_cards:
         try:
@@ -89,7 +94,7 @@ for current_page in range(1, pages_to_scrape + 1):
             
             # Skip jobs with missing critical data
             if not job_title or not company_name:
-                print(f"Skipping job with missing title or company: '{job_title}' - '{company_name}'")
+                logger.warning(f"Skipping job with missing title or company: '{job_title}' - '{company_name}'")
                 continue
                 
             # LOCATION block: limit to the dedicated locations container to exclude tags
@@ -116,7 +121,7 @@ for current_page in range(1, pages_to_scrape + 1):
                 
             # Skip jobs with no location data
             if not location:
-                print(f"Skipping job with missing location: '{job_title}' at '{company_name}'")
+                logger.warning(f"Skipping job with missing location: '{job_title}' at '{company_name}'")
                 continue
                 
             # Date
@@ -132,7 +137,7 @@ for current_page in range(1, pages_to_scrape + 1):
             
             # Skip jobs without valid ID
             if not job_id:
-                print(f"Skipping job without valid ID: '{job_title}' at '{company_name}'")
+                logger.warning(f"Skipping job without valid ID: '{job_title}' at '{company_name}'")
                 continue
                 
             company_link_elems = card.find_elements(By.CSS_SELECTOR, "a[href*='/actuarial-employers/']")
@@ -179,7 +184,7 @@ for current_page in range(1, pages_to_scrape + 1):
                 session.flush()                 # Force immediate insert/update
             except Exception as e:
                 session.rollback()              # Clear the failed transaction
-                print(f'Skipping job {job_id}: {e}')
+                logger.error(f'Skipping job {job_id}: {e}')
             # Commit is handled outside the loop
         except NoSuchElementException:
             continue
@@ -189,8 +194,10 @@ for current_page in range(1, pages_to_scrape + 1):
 
 # Clean up the browser once scraping is complete
 driver.quit()
+logger.info("Scraping completed successfully")
 
 # Commit all upserts to the database (default behaviour)
 session.commit()
+logger.info("Database updated with scraped jobs")
 
 session.close()

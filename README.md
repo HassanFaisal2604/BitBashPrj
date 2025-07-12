@@ -114,7 +114,7 @@ Before you begin, ensure you have the following installed:
 
 #### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/BitBashPrj.git
+git clone https://github.com/HassanFaisal2604/BitBashPrj.git
 cd BitBashPrj
 ```
 
@@ -148,7 +148,7 @@ cp .env.example .env  # Create this file with your config
 
 #### 1. Clone the Repository
 ```cmd
-git clone https://github.com/yourusername/BitBashPrj.git
+git clone https://github.com/HassanFaisal2604/BitBashPrj.git
 cd BitBashPrj
 ```
 
@@ -246,7 +246,7 @@ DATABASE_URL=postgresql://username:password@localhost/bitbash_db
 # Flask
 FLASK_ENV=development
 FLASK_APP=Backend.run:create_app
-SECRET_KEY=your-secret-key-here
+SECRET_KEY=your-secret-key-here-change-in-production
 
 # Scraper (optional)
 SCRAPER_DELAY=2
