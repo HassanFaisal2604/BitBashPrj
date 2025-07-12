@@ -176,19 +176,6 @@ def create_job():
     _query_cache.clear()
 
     return jsonify(new_job.to_dict()), 201
-        Posting_Date=posting_date,
-        Job_Type=data.get('job_type', 'Full-Time'),
-        Tags=tags,
-        Job_URL=data.get('url', '#'),
-        Company_URL=data.get('company_url', ''),
-        Salary=salary,
-        scraped_on=datetime.utcnow(),
-    )
-
-    session.add(new_job)
-    session.commit()
-
-    return jsonify(new_job.to_dict()), 201
 
 
 # ==============================================================================
