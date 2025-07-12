@@ -1,8 +1,7 @@
-import React, { createContext, useState, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import ModalPortal from './ModalPortal'
-
-export const ConfirmContext = createContext(() => Promise.resolve(false))
+import { ConfirmContext } from '../contexts/ConfirmContext'
 
 export function ConfirmProvider({ children }) {
   const [state, setState] = useState({ message: '', isOpen: false, resolve: null, isVisible: false })
@@ -24,7 +23,7 @@ export function ConfirmProvider({ children }) {
       state.resolve && state.resolve(result)
       setState({ message: '', isOpen: false, resolve: null, isVisible: false })
     }, 200)
-  }, [state.resolve])
+  }, [state])
 
   React.useEffect(() => {
     if (!state.isOpen) return

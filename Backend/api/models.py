@@ -1,6 +1,3 @@
-# Optional CSV seed helper
-import pandas as pd
-from pathlib import Path
 from sqlalchemy import create_engine, Column, String, UniqueConstraint, DateTime
 # SQLAlchemy 2.0+: import declarative_base from orm to avoid deprecation warning
 from sqlalchemy.orm import declarative_base
@@ -96,32 +93,8 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
 
-# --- 3. Optional CSV seed ---
-csv_path = Path(__file__).with_name("actuary_jobs.csv")
-
-if csv_path.exists():
-    df = pd.read_csv(csv_path)
-    for _, row in df.iterrows():
-        job = Job(
-            Job_ID=str(row['Job ID']),  # ensure varchar comparison uses string
-            Job_Title=row['Job Title'],
-            Company_Name=row['Company Name'],
-            Location=row['Location'],
-            Posting_Date=row['Posting Date'],
-            Job_URL=row['Job URL'],
-            Company_URL=row['Company URL'],
-            Salary=row['Salary'],
-            Tags=row['Tags'],
-            Job_Type=row['Job Type']
-        )
-        try:
-            session.merge(job)
-            session.flush()            # forces the INSERT immediately
-        except Exception as e:
-            session.rollback()         # clears the failed transaction
-            print(f"Skipping job {row['Job ID']}: {e}")
-    session.commit()
-    print(f"✅ Uploaded {len(df)} jobs to database from CSV seed.")
+# --- 3. Database initialization ---
+# Database tables are created automatically via Base.metadata.create_all(engine)
 
 # --- 4. (Optional) Debug print of first few rows ---
 try:

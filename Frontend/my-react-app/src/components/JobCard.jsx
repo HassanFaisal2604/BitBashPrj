@@ -1,23 +1,28 @@
 import React from 'react'
-import { Building, MapPin, Calendar, DollarSign, ExternalLink, Clock } from 'lucide-react'
+import { Building, MapPin, Calendar, DollarSign, Clock } from 'lucide-react'
 import JobActions from './JobActions'
 
 const tagColors = {
-  Pricing: 'bg-blue-100 text-blue-800 border-blue-200',
-  Health: 'bg-green-100 text-green-800 border-green-200',
-  'Life Insurance': 'bg-purple-100 text-purple-800 border-purple-200',
-  Pensions: 'bg-orange-100 text-orange-800 border-orange-200',
-  'P&C': 'bg-red-100 text-red-800 border-red-200',
-  'Data Science': 'bg-indigo-100 text-indigo-800 border-indigo-200',
-  'Machine Learning': 'bg-pink-100 text-pink-800 border-pink-200',
-  Leadership: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  Python: 'bg-gray-100 text-gray-800 border-gray-200',
-  SQL: 'bg-gray-100 text-gray-800 border-gray-200',
-  R: 'bg-gray-100 text-gray-800 border-gray-200',
-  Excel: 'bg-gray-100 text-gray-800 border-gray-200',
-  'Entry Level': 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  // Keep only critical info with colors
+  Salary: 'bg-green-100 text-green-800 border-green-200',
+  'Job Type': 'bg-blue-100 text-blue-800 border-blue-200',
+  
+  // Everything else gets neutral gray
+  Pricing: 'bg-gray-100 text-gray-700 border-gray-200',
+  Health: 'bg-gray-100 text-gray-700 border-gray-200',
+  'Life Insurance': 'bg-gray-100 text-gray-700 border-gray-200',
+  Pensions: 'bg-gray-100 text-gray-700 border-gray-200',
+  'P&C': 'bg-gray-100 text-gray-700 border-gray-200',
+  'Data Science': 'bg-gray-100 text-gray-700 border-gray-200',
+  'Machine Learning': 'bg-gray-100 text-gray-700 border-gray-200',
+  Leadership: 'bg-gray-100 text-gray-700 border-gray-200',
+  Python: 'bg-gray-100 text-gray-700 border-gray-200',
+  SQL: 'bg-gray-100 text-gray-700 border-gray-200',
+  R: 'bg-gray-100 text-gray-700 border-gray-200',
+  Excel: 'bg-gray-100 text-gray-700 border-gray-200',
+  'Entry Level': 'bg-gray-100 text-gray-700 border-gray-200',
 }
-const getTagColor = (tag) => tagColors[tag] || 'bg-slate-100 text-slate-800 border-slate-200'
+const getTagColor = (tag) => tagColors[tag] || 'bg-gray-100 text-gray-700 border-gray-200'
 
 function JobCard({ job, onDelete, onUpdate }) {
   const { flash } = job
@@ -51,8 +56,9 @@ function JobCard({ job, onDelete, onUpdate }) {
   return (
     <div className={`
       group relative bg-white border border-gray-200 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 
-      hover:shadow-lg hover:shadow-gray-200/50 hover:border-gray-300 hover:-translate-y-1
+      hover:shadow-xl hover:shadow-gray-200/80 hover:border-gray-300 hover:-translate-y-1
       transition-all duration-300 ease-out w-full overflow-hidden
+      hover:ring-1 hover:ring-gray-200/50
       ${flash ? 'ring-2 ring-green-400 animate-pulse' : ''}
     `}>
       {/* Mobile-optimized header */}
@@ -87,15 +93,6 @@ function JobCard({ job, onDelete, onUpdate }) {
             <Clock className="w-3 h-3 mr-1" />
             <span>{formatPostedDate(job.postedDate)}</span>
           </div>
-          {job.url && job.url !== '#' && (
-            <button 
-              onClick={() => window.open(job.url, '_blank')}
-              className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-2 hover:bg-blue-50 rounded-full touch-target-44 active:scale-95"
-              aria-label="View job posting"
-            >
-              <ExternalLink className="w-4 h-4 sm:w-4 sm:h-4" />
-            </button>
-          )}
         </div>
       </div>
 
