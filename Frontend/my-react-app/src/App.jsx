@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { Building, Plus, Sparkles } from 'lucide-react'
 import logo from './assets/logo_.png'
 import AddJobModal from './components/AddJobModal'
@@ -22,6 +22,23 @@ import SkeletonCard from './components/SkeletonCard'
  * @property {string=} salary
  */
 
+// Debounce hook for search optimization
+function useDebounce(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
+
 export default function App() {
   const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(false)
@@ -35,50 +52,56 @@ export default function App() {
   const toast = useToast()
   const confirm = useConfirm()
 
+  // Debounce search term to avoid excessive API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 300)
+  
+  // Memoize the API fetch function to prevent unnecessary re-renders
+  const fetchJobs = useCallback(async (params = {}) => {
+    try {
+      setLoading(true)
+      setError('')
+      
+      const data = await getJobs(params)
+      const mapped = data.map((j) => ({
+        id: j.id,
+        title: j.title,
+        company: j.company,
+        location: j.location,
+        type: j.job_type,
+        postedDate: j.posting_date,
+        salary: j.salary,
+        tags: (j.tags || '').split(',').map((t) => t.trim()).filter(Boolean),
+        url: j.url, // Add URL for external links
+      }))
+      setJobs(mapped)
+    } catch (err) {
+      setError(err.message || 'Failed to load jobs')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   // ------------------------------------------------------------
-  // 1. Fetch jobs from API whenever filters / sort change
+  // 1. Fetch jobs from API whenever filters / sort change - OPTIMIZED
   // ------------------------------------------------------------
   useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true)
-        setError('')
-        const params = {}
-        if (locationFilter) params.location = locationFilter
-        if (typeFilter) params.job_type = typeFilter
+    const params = {}
+    if (locationFilter) params.location = locationFilter
+    if (typeFilter) params.job_type = typeFilter
 
-        // Map UI sort options to backend sort keys
-        if (sortBy === 'newest') {
-          params.sort = 'posting_date_desc'
-        } else if (sortBy === 'oldest') {
-          params.sort = 'posting_date_asc'
-        } else if (sortBy === 'salary_high') {
-          params.sort = 'salary_high'
-        } else if (sortBy === 'salary_low') {
-          params.sort = 'salary_low'
-        } // 'relevance' or unknown maps to backend default
+    // Map UI sort options to backend sort keys
+    if (sortBy === 'newest') {
+      params.sort = 'posting_date_desc'
+    } else if (sortBy === 'oldest') {
+      params.sort = 'posting_date_asc'
+    } else if (sortBy === 'salary_high') {
+      params.sort = 'salary_high'
+    } else if (sortBy === 'salary_low') {
+      params.sort = 'salary_low'
+    } // 'relevance' or unknown maps to backend default
 
-        const data = await getJobs(params)
-        const mapped = data.map((j) => ({
-          id: j.id,
-          title: j.title,
-          company: j.company,
-          location: j.location,
-          type: j.job_type,
-          postedDate: j.posting_date,
-          salary: j.salary,
-          tags: (j.tags || '').split(',').map((t) => t.trim()).filter(Boolean),
-          url: j.url, // Add URL for external links
-        }))
-        setJobs(mapped)
-      } catch (err) {
-        setError(err.message || 'Failed to load jobs')
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchData()
-  }, [locationFilter, typeFilter, sortBy])
+    fetchJobs(params)
+  }, [locationFilter, typeFilter, sortBy, fetchJobs])
 
   const clearFilters = () => {
     setSearchTerm('')
@@ -180,17 +203,17 @@ export default function App() {
   }
 
   // ------------------------------------------------------------
-  // 5. Client-side search & derived lists
+  // 5. Client-side search & derived lists - OPTIMIZED
   // ------------------------------------------------------------
-  const filtered = jobs.filter((job) => {
-    if (!searchTerm) return true
-    const term = searchTerm.toLowerCase()
-    return (
+  const filtered = useMemo(() => {
+    if (!debouncedSearchTerm) return jobs
+    const term = debouncedSearchTerm.toLowerCase()
+    return jobs.filter((job) => 
       job.title.toLowerCase().includes(term) ||
       job.company.toLowerCase().includes(term) ||
       job.tags.some((t) => t.toLowerCase().includes(term))
     )
-  })
+  }, [jobs, debouncedSearchTerm])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 w-full overflow-x-hidden">

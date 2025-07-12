@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, String, UniqueConstraint, DateTime
+from sqlalchemy import create_engine, Column, String, UniqueConstraint, DateTime, Index, Integer, Float
 # SQLAlchemy 2.0+: import declarative_base from orm to avoid deprecation warning
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
 from datetime import datetime
+import re
 
 load_dotenv()
 
@@ -22,6 +23,13 @@ class Job(Base):
 
     __table_args__ = (
         UniqueConstraint('Job_Title', 'Company_Name', name='uq_title_company'),
+        # Add indexes for performance
+        Index('idx_location', 'Location'),
+        Index('idx_job_type', 'Job_Type'),
+        Index('idx_tags', 'Tags'),
+        Index('idx_scraped_on', 'scraped_on'),
+        Index('idx_salary_numeric', 'salary_numeric'),
+        Index('idx_posting_age_hours', 'posting_age_hours'),
     )
 
     Job_ID = Column(String, primary_key=True)
@@ -35,10 +43,96 @@ class Job(Base):
     Tags = Column(String, nullable=False)
     Job_Type = Column(String, nullable=False)
     scraped_on = Column(DateTime, default=datetime.utcnow, nullable=False)
+    # Add computed columns for performance
+    salary_numeric = Column(Float, default=0.0)  # Cached numeric salary for sorting
+    posting_age_hours = Column(Float, default=0.0)  # Cached posting age for sorting
 
     # ------------------------------
     # Helper / utility methods
     # ------------------------------
+    def _compute_salary_numeric(self) -> float:
+        """Convert salary text to a comparable float (USD)."""
+        if not self.Salary or 'not specified' in self.Salary.lower():
+            return 0.0
+
+        # Remove commas for cleaner numeric extraction
+        s_clean = self.Salary.replace(',', '')
+        # Find all numeric parts (handles ranges "110-150k" or "$120k")
+        nums = re.findall(r"\d+(?:\.\d+)?", s_clean)
+        if not nums:
+            return 0.0
+
+        values = []
+        idx = 0
+        for num in nums:
+            # Locate the position of this number in the original string to detect following 'k'
+            pos = s_clean.find(num, idx)
+            idx = pos + len(num)
+            multiplier = 1_000 if pos < len(s_clean) and s_clean[pos:pos+1].lower() == 'k' else 1
+            values.append(float(num) * multiplier)
+
+        # Use average of range if multiple numbers; otherwise the single value
+        return sum(values) / len(values)
+        
+    def _compute_posting_age_hours(self) -> float:
+        """Return approximate hours since posting based on textual Posting_Date."""
+        if not self.Posting_Date:
+            return float('inf')  # Treat unknown as oldest
+
+        s_low = self.Posting_Date.lower().strip()
+
+        # Handle keywords
+        if 'recent' in s_low:
+            return 0.0
+        if 'just now' in s_low:
+            return 0.0
+        # --- Abbreviated units ---
+        # Hours: e.g., "22h ago"
+        m = re.match(r"(\d+)\s*h", s_low)
+        if m:
+            return float(int(m.group(1)))
+
+        # Days: "17d ago"
+        m = re.match(r"(\d+)\s*d", s_low)
+        if m:
+            return float(int(m.group(1)) * 24)
+
+        # Weeks: "3w ago"
+        m = re.match(r"(\d+)\s*w", s_low)
+        if m:
+            return float(int(m.group(1)) * 24 * 7)
+
+        # Verbose units
+        if 'hour' in s_low or 'hr' in s_low:
+            m = re.search(r"(\d+)", s_low)
+            hrs = int(m.group(1)) if m else 1
+            return float(hrs)
+        if 'day' in s_low:
+            m = re.search(r"(\d+)", s_low)
+            days = int(m.group(1)) if m else 1
+            return float(days * 24)
+        if 'week' in s_low:
+            m = re.search(r"(\d+)", s_low)
+            weeks = int(m.group(1)) if m else 1
+            return float(weeks * 24 * 7)
+
+        # Attempt to parse as date string YYYY-MM-DD
+        try:
+            from dateutil import parser as dateparser  # type: ignore
+            dt = dateparser.parse(self.Posting_Date)
+            age_hours = (datetime.utcnow() - dt).total_seconds() / 3600.0
+            return age_hours
+        except Exception:
+            pass
+
+        # Fallback: high value so that unknowns appear last in newest-first
+        return float('inf')
+        
+    def update_computed_fields(self):
+        """Update computed fields for performance optimization."""
+        self.salary_numeric = self._compute_salary_numeric()
+        self.posting_age_hours = self._compute_posting_age_hours()
+
     def to_dict(self) -> dict:
         """Return a serialisable representation of the Job record."""
         # Pre-compute scraped_on to avoid repeated isinstance checks

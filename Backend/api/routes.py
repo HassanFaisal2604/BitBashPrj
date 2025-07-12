@@ -1,24 +1,51 @@
 from flask import Blueprint, jsonify, request
+from functools import lru_cache
+from datetime import datetime, timedelta
+import hashlib
 
 # Import Job model and database session from models.py
 from .models import Job, session
-from datetime import datetime
 
 # All routes defined in this file will automatically be prefixed with /api (set in run.py)
 bp = Blueprint('api', __name__)
 
+# Simple in-memory cache for query results
+_query_cache = {}
+_cache_timeout = 60  # Cache for 60 seconds
+
+def _get_cache_key(params):
+    """Generate a cache key from query parameters."""
+    sorted_params = sorted(params.items())
+    param_str = '&'.join(f"{k}={v}" for k, v in sorted_params)
+    return hashlib.md5(param_str.encode()).hexdigest()
+
+def _is_cache_valid(timestamp):
+    """Check if cache entry is still valid."""
+    return (datetime.utcnow() - timestamp).total_seconds() < _cache_timeout
 
 # ==============================================================================
-# 1. RETRIEVE JOBS (GET /api/jobs) with Filtering & Sorting
+# 1. RETRIEVE JOBS (GET /api/jobs) with Filtering & Sorting - OPTIMIZED
 # ==============================================================================
 @bp.route('/jobs', methods=['GET'])
 def get_jobs():
-    """Fetch a list of jobs with optional filtering and sorting."""
+    """Fetch a list of jobs with optional filtering and sorting - OPTIMIZED VERSION."""
+    
+    # Generate cache key from request parameters
+    cache_key = _get_cache_key(request.args.to_dict())
+    
+    # Check cache first
+    if cache_key in _query_cache:
+        cached_data, timestamp = _query_cache[cache_key]
+        if _is_cache_valid(timestamp):
+            response = jsonify(cached_data)
+            response.headers['Cache-Control'] = 'public, max-age=60'
+            response.headers['X-Cache'] = 'HIT'
+            return response
 
     # Begin with base query
     query = Job.query()
 
-    # --- Filtering ---
+    # --- Filtering (using indexed columns) ---
     job_type = request.args.get('job_type')
     if job_type:
         query = query.filter(Job.Job_Type.ilike(f"%{job_type}%"))
@@ -31,119 +58,51 @@ def get_jobs():
     if tag:
         query = query.filter(Job.Tags.ilike(f"%{tag}%"))
 
-    # --- Sorting ---
+    # --- Database-level Sorting (much faster than Python sorting) ---
     sort = request.args.get('sort', 'posting_date_desc')
 
-    # Helper to extract numeric value from salary strings like "$134k-$161k"
-    import re
-    from typing import cast
-
-    def _salary_to_number(s: str) -> float:
-        """Convert salary text to a comparable float (USD)."""
-        if not s or 'not specified' in s.lower():
-            return 0.0
-
-        # Remove commas for cleaner numeric extraction
-        s_clean = s.replace(',', '')
-        # Find all numeric parts (handles ranges "110-150k" or "$120k")
-        nums = re.findall(r"\d+(?:\.\d+)?", s_clean)
-        if not nums:
-            return 0.0
-
-        values = []
-        idx = 0
-        for num in nums:
-            # Locate the position of this number in the original string to detect following 'k'
-            pos = s_clean.find(num, idx)
-            idx = pos + len(num)
-            multiplier = 1_000 if pos < len(s_clean) and s_clean[pos:pos+1].lower() == 'k' else 1
-            values.append(float(num) * multiplier)
-
-        # Use average of range if multiple numbers; otherwise the single value
-        return sum(values) / len(values)
-
-    if sort in ('posting_date_asc', 'posting_date_desc'):
-        # Fetch all first; Posting_Date is stored as human-readable text, so we parse it.
-        jobs = query.all()
-
-        def _posting_age_hours(s: str) -> float:
-            """Return approximate hours since posting based on textual Posting_Date."""
-            if not s:
-                return float('inf')  # Treat unknown as oldest
-
-            s_low = s.lower().strip()
-
-            # Handle keywords
-            if 'recent' in s_low:
-                return 0.0
-            if 'just now' in s_low:
-                return 0.0
-            # --- Abbreviated units ---
-            # Hours: e.g., "22h ago"
-            m = re.match(r"(\d+)\s*h", s_low)
-            if m:
-                return float(int(m.group(1)))
-
-            # Days: "17d ago"
-            m = re.match(r"(\d+)\s*d", s_low)
-            if m:
-                return float(int(m.group(1)) * 24)
-
-            # Weeks: "3w ago"
-            m = re.match(r"(\d+)\s*w", s_low)
-            if m:
-                return float(int(m.group(1)) * 24 * 7)
-
-            # Verbose units
-            if 'hour' in s_low or 'hr' in s_low:
-                m = re.search(r"(\d+)", s_low)
-                hrs = int(m.group(1)) if m else 1
-                return float(hrs)
-            if 'day' in s_low:
-                m = re.search(r"(\d+)", s_low)
-                days = int(m.group(1)) if m else 1
-                return float(days * 24)
-            if 'week' in s_low:
-                m = re.search(r"(\d+)", s_low)
-                weeks = int(m.group(1)) if m else 1
-                return float(weeks * 24 * 7)
-
-            # Attempt to parse as date string YYYY-MM-DD
-            try:
-                from dateutil import parser as dateparser  # type: ignore
-                dt = dateparser.parse(s)
-                age_hours = (datetime.utcnow() - dt).total_seconds() / 3600.0
-                return age_hours
-            except Exception:
-                pass
-
-            # Fallback: high value so that unknowns appear last in newest-first
-            return float('inf')
-
-        # Newest first – smaller age means more recent
-        reverse = sort == 'posting_date_asc'  # older first should reverse
-        jobs.sort(key=lambda j: _posting_age_hours(cast(str, j.Posting_Date) if getattr(j, 'Posting_Date', None) is not None else ''), reverse=reverse)
-    elif sort in ('salary_high', 'salary_low'):
-        # Fetch first then sort in Python because Salary is stored as text
-        jobs = query.all()
-        reverse = sort == 'salary_high'  # high to low
-        jobs.sort(key=lambda j: _salary_to_number(cast(str, j.Salary) if getattr(j, 'Salary', None) is not None else ''), reverse=reverse)
+    if sort == 'posting_date_desc':
+        # Newest first - use computed column for fast sorting
+        query = query.order_by(Job.posting_age_hours.asc())  # Lower hours = more recent
+    elif sort == 'posting_date_asc':
+        # Oldest first
+        query = query.order_by(Job.posting_age_hours.desc())
+    elif sort == 'salary_high':
+        # High to low salary - use computed column
+        query = query.order_by(Job.salary_numeric.desc())
+    elif sort == 'salary_low':
+        # Low to high salary
+        query = query.order_by(Job.salary_numeric.asc())
     else:
-        # Default sorting (newest first)
+        # Default sorting (newest first by scraped_on)
         query = query.order_by(Job.scraped_on.desc())
-        jobs = query.all()
 
-    # Convert to dict once sorting is finalized
+    # Execute query once with all filters and sorting applied
+    jobs = query.all()
+
+    # Convert to dict (this is still needed for JSON serialization)
     jobs_data = [job.to_dict() for job in jobs]
+    
+    # Cache the result
+    _query_cache[cache_key] = (jobs_data, datetime.utcnow())
+    
+    # Clean old cache entries (simple cleanup)
+    if len(_query_cache) > 100:  # Limit cache size
+        expired_keys = [
+            k for k, (_, timestamp) in _query_cache.items() 
+            if not _is_cache_valid(timestamp)
+        ]
+        for k in expired_keys:
+            del _query_cache[k]
     
     # Add cache headers for better frontend performance
     response = jsonify(jobs_data)
     response.headers['Cache-Control'] = 'public, max-age=60'  # Cache for 1 minute
+    response.headers['X-Cache'] = 'MISS'
     return response
 
-
 # ==============================================================================
-# 2. CREATE A JOB (POST /api/jobs)
+# 2. CREATE A JOB (POST /api/jobs) - OPTIMIZED
 # ==============================================================================
 @bp.route('/jobs', methods=['POST'])
 def create_job():
@@ -206,6 +165,25 @@ def create_job():
         Salary=salary,
         scraped_on=datetime.utcnow(),
     )
+    
+    # Compute performance fields
+    new_job.update_computed_fields()
+
+    session.add(new_job)
+    session.commit()
+    
+    # Clear cache since data has changed
+    _query_cache.clear()
+
+    return jsonify(new_job.to_dict()), 201
+        Posting_Date=posting_date,
+        Job_Type=data.get('job_type', 'Full-Time'),
+        Tags=tags,
+        Job_URL=data.get('url', '#'),
+        Company_URL=data.get('company_url', ''),
+        Salary=salary,
+        scraped_on=datetime.utcnow(),
+    )
 
     session.add(new_job)
     session.commit()
@@ -244,6 +222,7 @@ def update_job(job_id):
 
     # Prepare update dictionary for bulk update
     updates = {}
+    needs_compute_update = False
     
     if 'title' in data:
         updates['Job_Title'] = data['title'].strip()
@@ -259,13 +238,22 @@ def update_job(job_id):
     if 'salary' in data:
         salary_value = data['salary']
         updates['Salary'] = salary_value.strip() if salary_value and salary_value.strip() else 'Not specified'
+        needs_compute_update = True  # Salary change requires recomputing numeric value
 
     # Apply updates if any
     if updates:
         for attr, value in updates.items():
             setattr(job, attr, value)
+        
+        # Update computed fields if salary changed
+        if needs_compute_update:
+            job.update_computed_fields()
 
     session.commit()
+    
+    # Clear cache since data has changed
+    _query_cache.clear()
+    
     return jsonify(job.to_dict())
 
 
@@ -280,5 +268,8 @@ def delete_job(job_id):
 
     session.delete(job)
     session.commit()
+    
+    # Clear cache since data has changed
+    _query_cache.clear()
 
     return '', 204
