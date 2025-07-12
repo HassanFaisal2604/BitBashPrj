@@ -20,7 +20,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/Frontend/my-react-app/index.html"
+      "destination": "/index.html"
     }
   ]
 } 
