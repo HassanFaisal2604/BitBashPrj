@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Building, Plus, Sparkles } from 'lucide-react'
-import logo from './assets/logo.png'
+import logo from './assets/logo_.png'
 import AddJobModal from './components/AddJobModal'
 import FilterBar from './components/FilterBar'
 import JobCard from './components/JobCard'
