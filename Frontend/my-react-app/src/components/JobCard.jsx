@@ -55,8 +55,18 @@ function JobCard({ job, onDelete, onUpdate }) {
     return `${days}d ago`
   }
 
-  const visibleTags = job.tags.slice(0, 3)
-  const remainingTagsCount = job.tags.length - 3
+  // -----------------------------
+  // Tag processing logic
+  // Support both array and comma-separated string formats coming from the API.
+  // Only show a maximum of two tags and indicate how many remain.
+  // -----------------------------
+  const maxTagsToShow = 2
+  const allTags = Array.isArray(job.tags)
+    ? job.tags
+    : (job.tags ? job.tags.split(',').map((t) => t.trim()) : [])
+
+  const visibleTags = allTags.slice(0, maxTagsToShow)
+  const remainingTagsCount = allTags.length - maxTagsToShow
 
   return (
     <div className={`
@@ -100,7 +110,7 @@ function JobCard({ job, onDelete, onUpdate }) {
       <div className="flex flex-wrap gap-1 sm:gap-2 mb-4 sm:mb-6 overflow-hidden">
         {visibleTags.map((tag, index) => (
           <span 
-            key={tag} 
+            key={`${tag}-${index}`} 
             className={`
               px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium border
               transform hover:scale-105 transition-all duration-200 whitespace-nowrap
