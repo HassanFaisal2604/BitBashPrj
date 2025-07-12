@@ -44,6 +44,11 @@ class Job(Base):
     # ------------------------------
     def to_dict(self) -> dict:
         """Return a serialisable representation of the Job record."""
+        # Pre-compute scraped_on to avoid repeated isinstance checks
+        scraped_on_iso = None
+        if self.scraped_on is not None:
+            scraped_on_iso = self.scraped_on.isoformat()
+            
         return {
             "id": self.Job_ID,
             "title": self.Job_Title,
@@ -55,7 +60,7 @@ class Job(Base):
             "url": self.Job_URL,
             "company_url": self.Company_URL,
             "salary": self.Salary,
-            "scraped_on": self.scraped_on.isoformat() if isinstance(self.scraped_on, datetime) else None,
+            "scraped_on": scraped_on_iso,
         }
 
     # Provide a convenience class-level query attribute similar to Flask-SQLAlchemy
@@ -77,7 +82,14 @@ if not DATABASE_URL:
     DB_NAME = os.getenv("NEON_DB", "postgres")
     DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}?sslmode=require"
 
-engine = create_engine(DATABASE_URL)
+# Optimize engine configuration for better performance
+engine = create_engine(
+    DATABASE_URL,
+    pool_size=10,          # Connection pool size
+    max_overflow=20,       # Additional connections beyond pool_size
+    pool_pre_ping=True,    # Validate connections before use
+    pool_recycle=3600,     # Recycle connections every hour
+)
 
 # Create table if it doesn't exist
 Base.metadata.create_all(engine)

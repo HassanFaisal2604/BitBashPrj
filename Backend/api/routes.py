@@ -38,8 +38,14 @@ def get_jobs():
     else:
         query = query.order_by(Job.scraped_on.desc())
 
+    # Execute query and convert to dict in one go for better performance
     jobs = query.all()
-    return jsonify([job.to_dict() for job in jobs])
+    jobs_data = [job.to_dict() for job in jobs]
+    
+    # Add cache headers for better frontend performance
+    response = jsonify(jobs_data)
+    response.headers['Cache-Control'] = 'public, max-age=60'  # Cache for 1 minute
+    return response
 
 
 # ==============================================================================
@@ -55,30 +61,55 @@ def create_job():
             'error': 'Missing required fields: title, company, and location are required.'
         }), 400
 
-    # Generate a new ID (use max+1 or uuid)
+    # Validate that required fields are not empty strings
+    for field in required_fields:
+        if not data[field] or not data[field].strip():
+            return jsonify({
+                'error': f'Field "{field}" cannot be empty.'
+            }), 400
 
-    # Prevent duplicate (same title & company)
-    existing = Job.query().filter(
-        Job.Job_Title == data['title'],
-        Job.Company_Name == data['company']
-    ).first()
-    if existing:
+    # Optimized duplicate check - only check if both title and company are provided
+    title = data['title'].strip()
+    company = data['company'].strip()
+    
+    # Use EXISTS for better performance than .first()
+    from sqlalchemy import exists
+    duplicate_exists = session.query(
+        exists().where(
+            (Job.Job_Title == title) & (Job.Company_Name == company)
+        )
+    ).scalar()
+    
+    if duplicate_exists:
         return jsonify({'error': 'A job with the same title and company already exists.'}), 409
 
     from uuid import uuid4
     new_id = str(uuid4())
 
+    # Clean and validate data
+    tags = data.get('tags', '').strip()
+    if not tags:
+        tags = 'General'
+    
+    salary = data.get('salary', '').strip()
+    if not salary:
+        salary = 'Not specified'
+        
+    posting_date = data.get('posting_date', '').strip()
+    if not posting_date:
+        posting_date = 'Recently posted'
+
     new_job = Job(
         Job_ID=new_id,
-        Job_Title=data['title'],
-        Company_Name=data['company'],
-        Location=data['location'],
-        Posting_Date=data.get('posting_date', 'N/A'),
+        Job_Title=title,
+        Company_Name=company,
+        Location=data['location'].strip(),
+        Posting_Date=posting_date,
         Job_Type=data.get('job_type', 'Full-Time'),
-        Tags=data.get('tags', ''),
+        Tags=tags,
         Job_URL=data.get('url', '#'),
         Company_URL=data.get('company_url', ''),
-        Salary=data.get('salary', 'Not specified'),
+        Salary=salary,
         scraped_on=datetime.utcnow(),
     )
 
@@ -110,12 +141,35 @@ def update_job(job_id):
 
     data = request.get_json(silent=True) or {}
 
-    # Update only provided fields
-    job.Job_Title = data.get('title', job.Job_Title)
-    job.Company_Name = data.get('company', job.Company_Name)
-    job.Location = data.get('location', job.Location)
-    job.Job_Type = data.get('job_type', job.Job_Type)
-    job.Tags = data.get('tags', job.Tags)
+    # Validate that if provided, required fields are not empty
+    for field in ['title', 'company', 'location']:
+        if field in data and (not data[field] or not data[field].strip()):
+            return jsonify({
+                'error': f'Field "{field}" cannot be empty.'
+            }), 400
+
+    # Prepare update dictionary for bulk update
+    updates = {}
+    
+    if 'title' in data:
+        updates['Job_Title'] = data['title'].strip()
+    if 'company' in data:
+        updates['Company_Name'] = data['company'].strip()
+    if 'location' in data:
+        updates['Location'] = data['location'].strip()
+    if 'job_type' in data:
+        updates['Job_Type'] = data['job_type']
+    if 'tags' in data:
+        tags_value = data['tags']
+        updates['Tags'] = tags_value.strip() if tags_value and tags_value.strip() else 'General'
+    if 'salary' in data:
+        salary_value = data['salary']
+        updates['Salary'] = salary_value.strip() if salary_value and salary_value.strip() else 'Not specified'
+
+    # Apply updates if any
+    if updates:
+        for attr, value in updates.items():
+            setattr(job, attr, value)
 
     session.commit()
     return jsonify(job.to_dict())

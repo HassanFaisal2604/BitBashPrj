@@ -1,11 +1,5 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-# Import WebDriverWait with compatibility for different selenium package layouts
-try:
-    from selenium.webdriver.support.wait import WebDriverWait  # pylint: disable=unused-import
-except ImportError:
-    from selenium.webdriver.support.ui import WebDriverWait  # type: ignore
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 import time
@@ -70,7 +64,6 @@ for current_page in range(1, pages_to_scrape + 1):
     page_url = url if current_page == 1 else f"{url}?page={current_page}"
     print(f"Navigating to {page_url} …")
     driver.get(page_url)
-    wait = WebDriverWait(driver, 15)
     time.sleep(5)  # allow content to settle
     close_popups()
 
@@ -85,7 +78,7 @@ for current_page in range(1, pages_to_scrape + 1):
             job_cards.append(card)
     print(f"Page {current_page}: Filtered to {len(job_cards)} valid cards")
 
-    for idx, card in enumerate(job_cards):
+    for card in job_cards:
         try:
             # Company
             company_name = card.find_element(By.CSS_SELECTOR, company_css).text.strip()
@@ -93,6 +86,12 @@ for current_page in range(1, pages_to_scrape + 1):
             title_css = "p[class*='job-card__position']"
             job_title = card.find_element(By.CSS_SELECTOR, title_css).text.strip()
             job_title = re.sub(r"^(FEATURED|NEW)\s*", "", job_title, flags=re.IGNORECASE)
+            
+            # Skip jobs with missing critical data
+            if not job_title or not company_name:
+                print(f"Skipping job with missing title or company: '{job_title}' - '{company_name}'")
+                continue
+                
             # LOCATION block: limit to the dedicated locations container to exclude tags
             loc_container_css = "div[class*='job-card__locations']"
             location = ""
@@ -113,24 +112,42 @@ for current_page in range(1, pages_to_scrape + 1):
                 location_parts = [country_name] + cities if country_name else cities
                 location = ", ".join(location_parts)
             except NoSuchElementException:
-                location = ""
+                location = "Remote"  # Default fallback
+                
+            # Skip jobs with no location data
+            if not location:
+                print(f"Skipping job with missing location: '{job_title}' at '{company_name}'")
+                continue
+                
             # Date
             date_css = "p[class*='posted-on']"
             posting_date = card.find_element(By.CSS_SELECTOR, date_css).text.strip()
+            if not posting_date:
+                posting_date = "Recently posted"  # Default fallback
+                
             # URL & ID
             job_link = card.find_element(By.CSS_SELECTOR, "a.Job_job-page-link__a5I5g").get_attribute("href")
             m = re.search(r"/actuarial-jobs/(\d+)", job_link)
             job_id = m.group(1) if m else ""
+            
+            # Skip jobs without valid ID
+            if not job_id:
+                print(f"Skipping job without valid ID: '{job_title}' at '{company_name}'")
+                continue
+                
             company_link_elems = card.find_elements(By.CSS_SELECTOR, "a[href*='/actuarial-employers/']")
             company_url = company_link_elems[0].get_attribute("href") if company_link_elems else ""
             # Salary
             sal_elems = card.find_elements(By.CSS_SELECTOR, "p[class*='job-card__salary']")
             salary_raw = sal_elems[0].text.strip() if sal_elems else "Not specified"
             salary = salary_raw.replace("💰", "").strip()
+            if not salary:
+                salary = "Not specified"
+                
             # Tags
             tags_elems = card.find_elements(By.CSS_SELECTOR, "div[class*='job-card__tags'] a")
             tags_list = [t.text.strip() for t in tags_elems if t.text.strip()]
-            tags = ", ".join(tags_list)
+            tags = ", ".join(tags_list) if tags_list else "General"
 
             # JOB TYPE determination
             job_type = "Full-Time"  # default
@@ -156,7 +173,14 @@ for current_page in range(1, pages_to_scrape + 1):
                 scraped_on=datetime.utcnow(),
             )
 
-            session.merge(job_obj)          # DB UPSERT
+            # Attempt to merge the job into the database
+            try:
+                session.merge(job_obj)          # DB UPSERT
+                session.flush()                 # Force immediate insert/update
+            except Exception as e:
+                session.rollback()              # Clear the failed transaction
+                print(f'Skipping job {job_id}: {e}')
+            # Commit is handled outside the loop
         except NoSuchElementException:
             continue
     

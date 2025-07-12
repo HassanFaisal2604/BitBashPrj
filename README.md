@@ -11,7 +11,7 @@ This repository contains **both** the Flask API/Selenium scraper (in `Backend/`)
 ## Features
 
 -   **Backend:** A robust Flask API with full CRUD functionality, server-side filtering (by keyword, job type, location, tags), and sorting.
--   **Database:** Uses PostgreSQL, managed with SQLAlchemy and Flask-Migrate.
+-   **Database:** Uses PostgreSQL with SQLAlchemy ORM.
 -   **Scraper:** A Selenium-based bot to populate the database with live job data from ActuaryList.
 -   **Frontend:** A responsive and modern React UI built with Vite and styled with Tailwind CSS. Features include modals for adding/editing, toast notifications for feedback, and loading skeletons for a smooth user experience.
 
@@ -21,26 +21,22 @@ This repository contains **both** the Flask API/Selenium scraper (in `Backend/`)
 BitBashPrj/
 ├── Backend/
 │   ├── api/
-│   │   ├── __init__.py     # Flask App Factory (create_app)
 │   │   ├── models.py       # SQLAlchemy database models
 │   │   └── routes.py       # All API endpoint logic (CRUD, filtering)
 │   ├── scraper/
 │   │   └── app.py          # Selenium scraper script
-│   ├── migrations/         # (optional) Flask-Migrate migration scripts
-│   ├── .env.example        # Example environment variables
 │   ├── config.py           # Application configuration
 │   ├── requirements.txt    # Python dependencies
-│   └── run.py              # Script to run the Flask server
+│   └── run.py              # Flask app factory
 │
 └── Frontend/
-    ├── src/
-    │   ├── api/
-    │   │   └── jobService.js # Centralized API call functions
-    │   ├── components/       # Reusable React components (JobCard, FilterBar, etc.)
-    │   └── ...
-    ├── .env.example
-    ├── package.json
-    └── ...
+    └── my-react-app/
+        ├── src/
+        │   ├── api.js      # API service functions
+        │   ├── components/ # React components
+        │   └── ...
+        ├── package.json
+        └── ...
 ```
 
 ---
@@ -74,10 +70,7 @@ pip install -r requirements.txt  # install Backend dependencies
 cp .env.example .env
 #    Now, edit the .env file with your credentials.
 
-# 5. (Optional) Run database migrations
-#    If you decide to enable Flask-Migrate, initialise and apply the migrations here.
-#    Otherwise, the tables will be created automatically the first time you run the app/scraper.
-
+# 5. Tables will be created automatically the first time you run the app/scraper.
 
 # 6. (Optional) Populate the database with live data
 #    This will run the Selenium scraper.
@@ -116,5 +109,5 @@ Your frontend is now running on `http://localhost:5173` (or another port if 5173
 
 ## Key Dependencies
 
--   **Backend:** Flask, SQLAlchemy, Flask-Migrate, Selenium, python-dotenv.
--   **Frontend:** React, Vite, Axios, Tailwind CSS, react-hot-toast.
+-   **Backend:** Flask, SQLAlchemy, Selenium, python-dotenv, Flask-CORS.
+-   **Frontend:** React, Vite, Tailwind CSS, Lucide React.

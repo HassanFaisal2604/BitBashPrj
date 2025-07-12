@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { Building, Plus } from 'lucide-react'
+import { Building, Plus, Sparkles } from 'lucide-react'
 import AddJobModal from './components/AddJobModal'
 import FilterBar from './components/FilterBar'
 import JobCard from './components/JobCard'
 import { getJobs, createJob, deleteJob as apiDeleteJob, updateJob } from './api'
-import { useToast } from './components/ToastProvider.jsx'
-import { useConfirm } from './components/ConfirmProvider.jsx'
+import { useToast } from './hooks/useToast'
+import { useConfirm } from './hooks/useConfirm'
 import SkeletonCard from './components/SkeletonCard'
 
 // Job type definition (for IDE hints only)
@@ -57,6 +57,7 @@ export default function App() {
           postedDate: j.posting_date,
           salary: j.salary,
           tags: (j.tags || '').split(',').map((t) => t.trim()).filter(Boolean),
+          url: j.url, // Add URL for external links
         }))
         setJobs(mapped)
       } catch (err) {
@@ -99,16 +100,16 @@ export default function App() {
         location: createdRaw.location,
         type: createdRaw.job_type,
         postedDate: createdRaw.posting_date,
-        posting_date: createdRaw.posting_date,
         salary: createdRaw.salary,
         tags: (createdRaw.tags || '').split(',').map((t) => t.trim()).filter(Boolean),
+        url: createdRaw.url,
       }
       const createdWithFlash = { ...created, flash: true }
       setJobs([createdWithFlash, ...jobs])
       setTimeout(() => {
         setJobs((prev) => prev.map((j) => ({ ...j, flash: false })))
       }, 2000)
-      toast('Job added successfully', 'success')
+      toast('Job posted successfully! 🎉', 'success')
     } catch (err) {
       toast(err.message || 'Failed to add job', 'error')
     } finally {
@@ -126,7 +127,7 @@ export default function App() {
     try {
       await apiDeleteJob(id)
       setJobs(jobs.filter((j) => j.id !== id))
-      toast('Job deleted', 'success')
+      toast('Job deleted successfully', 'success')
     } catch (err) {
       toast(err.message || 'Failed to delete job', 'error')
     }
@@ -156,9 +157,10 @@ export default function App() {
         postedDate: updatedRaw.posting_date,
         salary: updatedRaw.salary,
         tags: (updatedRaw.tags || '').split(',').map((t) => t.trim()).filter(Boolean),
+        url: updatedRaw.url,
       }
       setJobs(jobs.map((j) => (j.id === id ? updated : j)))
-      toast('Job updated', 'success')
+      toast('Job updated successfully! ✨', 'success')
     } catch (err) {
       toast(err.message || 'Failed to update job', 'error')
     } finally {
@@ -167,7 +169,7 @@ export default function App() {
   }
 
   // ------------------------------------------------------------
-  // 4. Client-side search & derived lists
+  // 5. Client-side search & derived lists
   // ------------------------------------------------------------
   const filtered = jobs.filter((job) => {
     if (!searchTerm) return true
@@ -179,29 +181,28 @@ export default function App() {
     )
   })
 
-  // The backend already sends sorted but we preserve front-end toggle as fallback
-  const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === 'newest') return new Date(b.posting_date || b.postedDate) - new Date(a.posting_date || a.postedDate)
-    return new Date(a.posting_date || a.postedDate) - new Date(b.posting_date || b.postedDate)
-  })
-
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm">
+      <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm sticky top-0 z-30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-6">
+          <div className="flex items-center justify-between py-4 sm:py-6">
             <div className="flex items-center space-x-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
-                <Building className="h-6 w-6 text-white" />
+              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg">
+                <Building className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">ActuaryList</h1>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">ActuaryList</h1>
+                <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Find your dream actuarial career</p>
+              </div>
             </div>
             <button
               onClick={() => setShowAdd(true)}
-              className="inline-flex items-center rounded-lg bg-blue-600 px-6 py-3 text-base font-medium text-white transition-colors duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="inline-flex items-center rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-medium text-white transition-all duration-200 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
             >
-              <Plus className="mr-2 h-5 w-5" /> Post a Job
+              <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden sm:inline">Post a Job</span>
+              <span className="sm:hidden">Post</span>
             </button>
           </div>
         </div>
@@ -222,29 +223,81 @@ export default function App() {
         }}
       />
 
-      {/* List */}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-6">
-          <h2 className="mb-2 text-2xl font-bold text-gray-900">{filtered.length} Actuarial Positions Available</h2>
-          <p className="text-gray-600">Find your next career opportunity in actuarial science</p>
+      {/* Main Content */}
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        {/* Stats Header */}
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-center gap-2 mb-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+              {loading ? 'Loading...' : `${filtered.length} Actuarial Position${filtered.length !== 1 ? 's' : ''}`}
+            </h2>
+            {filtered.length > 0 && (
+              <Sparkles className="h-5 w-5 text-yellow-500 animate-pulse" />
+            )}
+          </div>
+          <p className="text-sm sm:text-base text-gray-600">
+            {loading ? 'Fetching the latest opportunities...' : 'Find your next career opportunity in actuarial science'}
+          </p>
         </div>
+
+        {/* Loading State */}
         {loading && (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, idx) => (
               <SkeletonCard key={idx} />
             ))}
           </div>
         )}
-        {error && <p className="text-center text-red-600">{error}</p>}
-        {!loading && (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {sorted.map((job) => (
-              <JobCard key={job.id} job={job} onDelete={handleDelete} onUpdate={handleUpdate} />
+
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+              <span className="text-red-600 text-2xl">⚠️</span>
+            </div>
+            <p className="text-red-600 font-medium mb-2">Oops! Something went wrong</p>
+            <p className="text-gray-600 text-sm">{error}</p>
+          </div>
+        )}
+
+        {/* Jobs Grid */}
+        {!loading && !error && (
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((job, index) => (
+              <div
+                key={job.id}
+                className="animate-fade-in"
+                style={{
+                  animationDelay: `${index * 50}ms`,
+                }}
+              >
+                <JobCard job={job} onDelete={handleDelete} onUpdate={handleUpdate} />
+              </div>
             ))}
           </div>
         )}
-        {filtered.length === 0 && (
-          <p className="py-12 text-center text-gray-600">No jobs found. Adjust search or filters.</p>
+
+        {/* Empty State */}
+        {!loading && !error && filtered.length === 0 && (
+          <div className="text-center py-12 sm:py-16">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+              <Building className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No jobs found</h3>
+            <p className="text-gray-600 mb-6">
+              {searchTerm || locationFilter || typeFilter
+                ? 'Try adjusting your search or filters to find more opportunities.'
+                : 'Be the first to post a job opportunity!'}
+            </p>
+            {(searchTerm || locationFilter || typeFilter) && (
+              <button
+                onClick={clearFilters}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
         )}
       </main>
 
