@@ -267,7 +267,7 @@ export default function App() {
             )}
           </div>
           <p className="text-sm sm:text-base text-gray-600">
-            {loading ? 'Fetching the latest opportunities...' : 'Find your next career opportunity in actuarial science'}
+            {loading ? 'Fetching the latest opportunities...' : ''}
           </p>
         </div>
 
