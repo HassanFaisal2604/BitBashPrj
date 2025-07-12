@@ -13,14 +13,14 @@
       "use": "@vercel/python"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.py"
+      "source": "/api/(.*)",
+      "destination": "/api/index.py"
     },
     {
-      "src": "/(.*)",
-      "dest": "/Frontend/my-react-app/dist/index.html"
+      "source": "/(.*)",
+      "destination": "/Frontend/my-react-app/index.html"
     }
   ]
 } 
