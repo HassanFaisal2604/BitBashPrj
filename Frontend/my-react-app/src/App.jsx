@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Building, Plus, Sparkles } from 'lucide-react'
+import logo from './assets/logo.jpg'
 import AddJobModal from './components/AddJobModal'
 import FilterBar from './components/FilterBar'
 import JobCard from './components/JobCard'
@@ -198,11 +199,11 @@ export default function App() {
         <div className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6 xl:px-8">
           <div className="flex items-center justify-between py-3 sm:py-4 lg:py-6">
             <div className="flex items-center space-x-3">
-              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg">
-                <Building className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center">
+                <img src={logo} alt="Actuwise Logo" className="h-full w-full object-contain" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">ActuaryList</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Actuwise</h1>
                 <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Find your dream actuarial career</p>
               </div>
             </div>
