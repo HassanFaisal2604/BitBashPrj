@@ -195,18 +195,14 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 w-full overflow-x-hidden">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm sticky top-0 z-30">
+      <header className="bg-transparent backdrop-blur-md border-b border-gray-200 shadow-sm sticky top-0 z-30">
         <div className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6 xl:px-8">
           <div className="flex items-center justify-between py-3 sm:py-4 lg:py-6">
-            <div className="flex items-center space-x-3">
-              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center">
-                <img src={logo} alt="Actuwise Logo" className="h-full w-full object-contain" />
-              </div>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Actuwise</h1>
-                <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Find your dream actuarial career</p>
-              </div>
-            </div>
+            <img
+              src={logo}
+              alt="Actuwise Logo"
+              className="h-16 sm:h-20 w-auto object-contain"
+            />
             <button
               onClick={() => setShowAdd(true)}
               className="inline-flex items-center rounded-xl bg-indigo-600 px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-medium text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg hover:shadow-indigo-500/20"
