@@ -45,7 +45,17 @@ export default function App() {
         const params = {}
         if (locationFilter) params.location = locationFilter
         if (typeFilter) params.job_type = typeFilter
-        if (sortBy) params.sort = sortBy === 'newest' ? 'posting_date_desc' : 'posting_date_asc'
+
+        // Map UI sort options to backend sort keys
+        if (sortBy === 'newest') {
+          params.sort = 'posting_date_desc'
+        } else if (sortBy === 'oldest') {
+          params.sort = 'posting_date_asc'
+        } else if (sortBy === 'salary_high') {
+          params.sort = 'salary_high'
+        } else if (sortBy === 'salary_low') {
+          params.sort = 'salary_low'
+        } // 'relevance' or unknown maps to backend default
 
         const data = await getJobs(params)
         const mapped = data.map((j) => ({

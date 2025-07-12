@@ -32,14 +32,108 @@ def get_jobs():
         query = query.filter(Job.Tags.ilike(f"%{tag}%"))
 
     # --- Sorting ---
-    sort = request.args.get('sort')
-    if sort == 'posting_date_asc':
-        query = query.order_by(Job.scraped_on.asc())
-    else:
-        query = query.order_by(Job.scraped_on.desc())
+    sort = request.args.get('sort', 'posting_date_desc')
 
-    # Execute query and convert to dict in one go for better performance
-    jobs = query.all()
+    # Helper to extract numeric value from salary strings like "$134k-$161k"
+    import re
+    from typing import cast
+
+    def _salary_to_number(s: str) -> float:
+        """Convert salary text to a comparable float (USD)."""
+        if not s or 'not specified' in s.lower():
+            return 0.0
+
+        # Remove commas for cleaner numeric extraction
+        s_clean = s.replace(',', '')
+        # Find all numeric parts (handles ranges "110-150k" or "$120k")
+        nums = re.findall(r"\d+(?:\.\d+)?", s_clean)
+        if not nums:
+            return 0.0
+
+        values = []
+        idx = 0
+        for num in nums:
+            # Locate the position of this number in the original string to detect following 'k'
+            pos = s_clean.find(num, idx)
+            idx = pos + len(num)
+            multiplier = 1_000 if pos < len(s_clean) and s_clean[pos:pos+1].lower() == 'k' else 1
+            values.append(float(num) * multiplier)
+
+        # Use average of range if multiple numbers; otherwise the single value
+        return sum(values) / len(values)
+
+    if sort in ('posting_date_asc', 'posting_date_desc'):
+        # Fetch all first; Posting_Date is stored as human-readable text, so we parse it.
+        jobs = query.all()
+
+        def _posting_age_hours(s: str) -> float:
+            """Return approximate hours since posting based on textual Posting_Date."""
+            if not s:
+                return float('inf')  # Treat unknown as oldest
+
+            s_low = s.lower().strip()
+
+            # Handle keywords
+            if 'recent' in s_low:
+                return 0.0
+            if 'just now' in s_low:
+                return 0.0
+            # --- Abbreviated units ---
+            # Hours: e.g., "22h ago"
+            m = re.match(r"(\d+)\s*h", s_low)
+            if m:
+                return float(int(m.group(1)))
+
+            # Days: "17d ago"
+            m = re.match(r"(\d+)\s*d", s_low)
+            if m:
+                return float(int(m.group(1)) * 24)
+
+            # Weeks: "3w ago"
+            m = re.match(r"(\d+)\s*w", s_low)
+            if m:
+                return float(int(m.group(1)) * 24 * 7)
+
+            # Verbose units
+            if 'hour' in s_low or 'hr' in s_low:
+                m = re.search(r"(\d+)", s_low)
+                hrs = int(m.group(1)) if m else 1
+                return float(hrs)
+            if 'day' in s_low:
+                m = re.search(r"(\d+)", s_low)
+                days = int(m.group(1)) if m else 1
+                return float(days * 24)
+            if 'week' in s_low:
+                m = re.search(r"(\d+)", s_low)
+                weeks = int(m.group(1)) if m else 1
+                return float(weeks * 24 * 7)
+
+            # Attempt to parse as date string YYYY-MM-DD
+            try:
+                from dateutil import parser as dateparser  # type: ignore
+                dt = dateparser.parse(s)
+                age_hours = (datetime.utcnow() - dt).total_seconds() / 3600.0
+                return age_hours
+            except Exception:
+                pass
+
+            # Fallback: high value so that unknowns appear last in newest-first
+            return float('inf')
+
+        # Newest first – smaller age means more recent
+        reverse = sort == 'posting_date_asc'  # older first should reverse
+        jobs.sort(key=lambda j: _posting_age_hours(cast(str, j.Posting_Date) if getattr(j, 'Posting_Date', None) is not None else ''), reverse=reverse)
+    elif sort in ('salary_high', 'salary_low'):
+        # Fetch first then sort in Python because Salary is stored as text
+        jobs = query.all()
+        reverse = sort == 'salary_high'  # high to low
+        jobs.sort(key=lambda j: _salary_to_number(cast(str, j.Salary) if getattr(j, 'Salary', None) is not None else ''), reverse=reverse)
+    else:
+        # Default sorting (newest first)
+        query = query.order_by(Job.scraped_on.desc())
+        jobs = query.all()
+
+    # Convert to dict once sorting is finalized
     jobs_data = [job.to_dict() for job in jobs]
     
     # Add cache headers for better frontend performance

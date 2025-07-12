@@ -126,7 +126,7 @@ function JobCard({ job, onDelete, onUpdate }) {
       </div>
 
       {/* Posted time placed bottom right with muted text */}
-      <div className="absolute bottom-3 left-4 text-xs text-gray-400 select-none">
+      <div className="absolute bottom-3 font-bold left-4 text-xs text-gray-400 select-none">
         {formatPostedDate(job.postedDate)}
       </div>
 
