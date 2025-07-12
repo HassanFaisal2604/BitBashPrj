@@ -201,7 +201,7 @@ export default function App() {
             <img
               src={logo}
               alt="Actuwise Logo"
-              className="h-16 sm:h-20 w-auto object-contain"
+              className="h-14 sm:h-16 w-auto object-contain"
             />
             <button
               onClick={() => setShowAdd(true)}

@@ -144,8 +144,6 @@ npm install
 cp .env.example .env  # Create this file with your config
 ```
 
-```
-
 ### Windows Setup
 
 #### 1. Clone the Repository
@@ -200,8 +198,8 @@ python -c "from run import create_app; app = create_app(); app.app_context().pus
 ```bash
 cd BitBashPrj
 source venv/bin/activate
-cd Backend
-export FLASK_APP=run:create_app
+# Stay in the project root so that Python can resolve the `Backend` package
+export FLASK_APP=Backend.run:create_app
 export FLASK_ENV=development
 flask run
 # Backend will be available at http://localhost:5000/api/jobs
@@ -216,22 +214,24 @@ npm run dev
 
 #### Windows Development Commands:
 
-**Backend (Command Prompt 1):**
-```cmd
+**Backend (PowerShell):**
+```powershell
 cd BitBashPrj
-venv\Scripts\activate
-cd Backend
-set FLASK_APP=run:create_app
-set FLASK_ENV=development
+./venv/Scripts/Activate.ps1
+$env:FLASK_APP = "Backend.run:create_app"
+$env:FLASK_ENV = "development"
 flask run
 # Backend will be available at http://localhost:5000
 ```
 
-**Frontend (Command Prompt 2):**
+**Backend (Command Prompt):**
 ```cmd
-cd BitBashPrj\Frontend\my-react-app
-npm run dev
-# Frontend will be available at http://localhost:5173
+cd BitBashPrj
+venv\Scripts\activate
+set FLASK_APP=Backend.run:create_app
+set FLASK_ENV=development
+flask run
+# Backend will be available at http://localhost:5000
 ```
 
 ### Environment Variables
@@ -245,7 +245,7 @@ DATABASE_URL=postgresql://username:password@localhost/bitbash_db
 
 # Flask
 FLASK_ENV=development
-FLASK_APP=run:create_app
+FLASK_APP=Backend.run:create_app
 SECRET_KEY=your-secret-key-here
 
 # Scraper (optional)
