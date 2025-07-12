@@ -178,6 +178,15 @@ for current_page in range(1, pages_to_scrape + 1):
                 scraped_on=datetime.utcnow(),
             )
 
+            # --------------------------------------------------------------
+            # Compute derived fields (salary_numeric & posting_age_hours)
+            # BEFORE persisting so that database-level sorting works.
+            # This ensures that jobs with "Just now" or other relative
+            # dates receive a posting_age_hours close to 0, making them
+            # appear first when sorting by newest.
+            # --------------------------------------------------------------
+            job_obj.update_computed_fields()
+
             # Attempt to merge the job into the database
             try:
                 session.merge(job_obj)          # DB UPSERT
