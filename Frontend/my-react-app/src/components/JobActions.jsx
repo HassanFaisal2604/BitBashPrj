@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Edit2, Trash2 } from 'lucide-react'
 import EditJobModal from './EditJobModal'
 
-function JobActions({ job, onDelete, onUpdate }) {
+function JobActions({ job, onDelete, onUpdate, inline = false }) {
   const [showEdit, setShowEdit] = useState(false)
 
   const handleSave = async (payload) => {
@@ -13,7 +13,7 @@ function JobActions({ job, onDelete, onUpdate }) {
   return (
     <>
       {/* Desktop layout - Icon buttons on hover */}
-      <div className="hidden sm:flex justify-end items-center pt-4 border-t border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+      <div className={`hidden sm:flex justify-end items-center ${inline ? '' : 'pt-4 border-t border-gray-100'} opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
         <div className="flex gap-2">
           <button
             onClick={() => setShowEdit(true)}
@@ -34,7 +34,7 @@ function JobActions({ job, onDelete, onUpdate }) {
 
       {/* Mobile layout - Icon buttons only, more compact */}
       <div className="sm:hidden">
-        <div className="flex items-center justify-end pt-3 border-t border-gray-100">
+        <div className={`flex items-center justify-end ${inline ? '' : 'pt-3 border-t border-gray-100'}`}>
           <div className="flex gap-1">
             <button
               onClick={() => setShowEdit(true)}

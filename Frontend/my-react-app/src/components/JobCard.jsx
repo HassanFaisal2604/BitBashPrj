@@ -120,14 +120,12 @@ function JobCard({ job, onDelete, onUpdate }) {
         )}
       </div>
 
-      {/* Enhanced actions section */}
-      <div className="transform transition-all duration-200 group-hover:translate-y-0">
-        <JobActions job={job} onDelete={onDelete} onUpdate={onUpdate} />
-      </div>
-
-      {/* Posted time placed bottom right with muted text */}
-      <div className="absolute bottom-3 font-bold left-4 text-xs text-gray-400 select-none">
-        {formatPostedDate(job.postedDate)}
+      {/* Bottom row: posted date and action buttons */}
+      <div className="flex items-center justify-between mt-4">
+        <div className="text-xs text-gray-400 font-bold select-none">
+          {formatPostedDate(job.postedDate)}
+        </div>
+        <JobActions job={job} onDelete={onDelete} onUpdate={onUpdate} inline />
       </div>
 
       {/* Subtle hover indicator */}
