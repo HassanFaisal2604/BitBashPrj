@@ -6,6 +6,11 @@ const tagColors = {
   // Keep only critical info with colors
   Salary: 'bg-green-100 text-green-800 border-green-200',
   'Job Type': 'bg-blue-100 text-blue-800 border-blue-200',
+  // Job type tags
+  'Full-Time': 'bg-blue-100 text-blue-800 border-blue-200',
+  'Internship': 'bg-purple-100 text-purple-800 border-purple-200',
+  'Part-Time': 'bg-green-100 text-green-800 border-green-200',
+  'Contract': 'bg-yellow-100 text-yellow-800 border-yellow-200',
   
   // Everything else gets neutral gray
   Pricing: 'bg-gray-100 text-gray-700 border-gray-200',
@@ -21,6 +26,14 @@ const tagColors = {
   R: 'bg-gray-100 text-gray-700 border-gray-200',
   Excel: 'bg-gray-100 text-gray-700 border-gray-200',
   'Entry Level': 'bg-gray-100 text-gray-700 border-gray-200',
+}
+
+// Dynamic badge styling for the primary job type pill rendered beside location
+const jobTypeBadge = {
+  'Full-Time': 'bg-blue-50 text-blue-700',
+  'Part-Time': 'bg-green-50 text-green-700',
+  'Internship': 'bg-purple-50 text-purple-700',
+  'Contract': 'bg-yellow-50 text-yellow-700',
 }
 const getTagColor = (tag) => tagColors[tag] || 'bg-gray-100 text-gray-700 border-gray-200'
 
@@ -64,7 +77,7 @@ function JobCard({ job, onDelete, onUpdate }) {
       {/* Mobile-optimized header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-4 gap-2 sm:gap-3">
         <div className="flex-1 min-w-0 overflow-hidden">
-          <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors duration-200 break-words">
+          <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-1 sm:mb-2 leading-snug line-clamp-2 group-hover:text-blue-600 group-hover:underline transition-colors duration-200 break-words">
             {job.title}
           </h3>
           <div className="flex items-center text-sm sm:text-base lg:text-lg text-blue-600 font-semibold mb-1 sm:mb-2 hover:text-blue-700 transition-colors duration-200 min-w-0">
@@ -77,7 +90,7 @@ function JobCard({ job, onDelete, onUpdate }) {
               <span className="truncate">{job.location}</span>
             </div>
             <span className="text-gray-400 px-1">•</span>
-            <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap">
+            <span className={`px-2 py-1 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap ${jobTypeBadge[job.type] || 'bg-gray-100 text-gray-700'}`}>
               {job.type}
             </span>
           </div>

@@ -33,6 +33,7 @@ function FilterBar({
     { value: 'New York', label: 'New York', count: locationCounts['New York'] || 0 },
     { value: 'Chicago', label: 'Chicago', count: locationCounts['Chicago'] || 0 },
     { value: 'California', label: 'California', count: locationCounts['California'] || 0 },
+    { value: 'Pakistan', label: 'Pakistan', count: locationCounts['Pakistan'] || 0 }
   ]
 
   const typeOptions = [

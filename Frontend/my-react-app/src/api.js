@@ -2,7 +2,18 @@
 // You can override the base URL at runtime by defining VITE_API_BASE in an .env file.
 
 // Ensure no trailing slash to avoid double slashes when we append paths
-const API_BASE = (import.meta.env.VITE_API_BASE ?? '/api').replace(/\/$/, '')
+// Priority: 1) explicit env var 2) Vite dev fallback to local Flask 3) default relative `/api`
+let _base = import.meta.env.VITE_API_BASE
+if (!_base) {
+  if (import.meta.env.DEV) {
+    // Vite dev server is usually on 5173; backend (flask) default 5000
+    _base = 'http://localhost:5000/api'
+  } else {
+    _base = '/api'
+  }
+}
+
+const API_BASE = _base.replace(/\/$/, '')
 
 function handleResponse(res) {
   if (!res.ok) {
