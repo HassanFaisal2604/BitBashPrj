@@ -60,68 +60,73 @@ function JobCard({ job, onDelete, onUpdate }) {
 
   return (
     <div className={`
-      group relative bg-white border ${COLOR_PALETTE.borderNeutral} rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-5
+      flex flex-col flex-grow h-full group relative bg-white border ${COLOR_PALETTE.borderNeutral} rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-5
       cursor-pointer
-      hover:shadow-md hover:shadow-gray-300/70 hover:scale-[1.02] hover:border-gray-300
+      hover:shadow-xl hover:shadow-gray-400/60 hover:scale-[1.02] hover:border-gray-300
       transition-all duration-300 ease-out w-full overflow-hidden
       ${flash ? 'ring-2 ring-emerald-400 animate-pulse' : ''}
     `}>
-      {/* Mobile-optimized header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-4 gap-2 sm:gap-3">
-        <div className="flex-1 min-w-0 overflow-hidden">
-          <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2 leading-snug line-clamp-2 group-hover:text-indigo-600 group-hover:underline transition-colors duration-200 break-words">
-            {job.title}
-          </h3>
-          <div className="flex items-center text-sm sm:text-base lg:text-lg text-gray-600 font-normal mb-1 sm:mb-2 min-w-0">
-            <Building className="w-4 h-4 sm:w-4 sm:h-4 mr-2 flex-shrink-0 opacity-70" />
-            <span className="truncate opacity-90">{job.company}</span>
-          </div>
-          <div className="flex items-center text-sm sm:text-sm text-gray-500 mb-2 sm:mb-3 flex-wrap gap-1">
-            <div className="flex items-center min-w-0">
-              <MapPin className="w-4 h-4 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
-              <span className="truncate">{job.location}</span>
+      {/* Main body wrapper for sticky footer */}
+      <div className="flex-grow">
+
+        {/* Mobile-optimized header */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-4 gap-2 sm:gap-3">
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2 leading-snug line-clamp-2 group-hover:text-indigo-600 group-hover:underline transition-colors duration-200 break-words">
+              {job.title}
+            </h3>
+            <div className="flex items-center text-sm sm:text-base lg:text-lg text-gray-600 font-normal mb-1 sm:mb-2 min-w-0">
+              <Building className="w-4 h-4 sm:w-4 sm:h-4 mr-2 flex-shrink-0 opacity-70" />
+              <span className="truncate opacity-90">{job.company}</span>
             </div>
-            <span className="text-gray-400 px-1">•</span>
-            <span className={`px-2 py-1 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap ${jobTypeBadge[job.type] || 'bg-gray-100 text-gray-700'}`}>
-              {job.type}
+            <div className="flex items-center text-sm sm:text-sm text-gray-500 mb-2 sm:mb-3 flex-wrap gap-1">
+              <div className="flex items-center min-w-0">
+                <MapPin className="w-4 h-4 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
+                <span className="truncate">{job.location}</span>
+              </div>
+              <span className="text-gray-400 px-1">•</span>
+              <span className={`px-2 py-1 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap ${jobTypeBadge[job.type] || 'bg-gray-100 text-gray-700'}`}>
+                {job.type}
+              </span>
+            </div>
+            {job.salary && (
+              <div className={`flex items-center text-sm sm:text-sm ${COLOR_PALETTE.successText} font-medium mb-2 sm:mb-3 ${COLOR_PALETTE.successBg} px-2 sm:px-3 py-1 rounded-lg w-fit`}>
+                <DollarSign className="w-4 h-4 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
+                <span className="truncate">{job.salary}</span>
+              </div>
+            )}
+          </div>
+          {/* Removed time display from header, will be repositioned at card bottom */}
+        </div>
+
+        {/* Tags */}
+        <div className="flex flex-wrap gap-1 sm:gap-2 mb-4 sm:mb-6 overflow-hidden">
+          {visibleTags.map((tag, index) => (
+            <span 
+              key={tag} 
+              className={`
+                px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium border
+                transform hover:scale-105 transition-all duration-200 whitespace-nowrap
+                ${getTagColor(tag)}
+              `}
+              style={{
+                animationDelay: `${index * 50}ms`,
+              }}
+            >
+              {tag}
             </span>
-          </div>
-          {job.salary && (
-            <div className={`flex items-center text-sm sm:text-sm ${COLOR_PALETTE.successText} font-medium mb-2 sm:mb-3 ${COLOR_PALETTE.successBg} px-2 sm:px-3 py-1 rounded-lg w-fit`}>
-              <DollarSign className="w-4 h-4 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
-              <span className="truncate">{job.salary}</span>
-            </div>
+          ))}
+          {remainingTagsCount > 0 && (
+            <span className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200 transition-colors duration-200 whitespace-nowrap">
+              +{remainingTagsCount} more
+            </span>
           )}
         </div>
-        {/* Removed time display from header, will be repositioned at card bottom */}
-      </div>
 
-      {/* Tags */}
-      <div className="flex flex-wrap gap-1 sm:gap-2 mb-4 sm:mb-6 overflow-hidden">
-        {visibleTags.map((tag, index) => (
-          <span 
-            key={tag} 
-            className={`
-              px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium border
-              transform hover:scale-105 transition-all duration-200 whitespace-nowrap
-              ${getTagColor(tag)}
-            `}
-            style={{
-              animationDelay: `${index * 50}ms`,
-            }}
-          >
-            {tag}
-          </span>
-        ))}
-        {remainingTagsCount > 0 && (
-          <span className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200 transition-colors duration-200 whitespace-nowrap">
-            +{remainingTagsCount} more
-          </span>
-        )}
-      </div>
+      </div> {/* End of flex-grow body */}
 
-      {/* Bottom row: posted date and action buttons */}
-      <div className="flex items-center justify-between mt-4">
+      {/* Sticky footer */}
+      <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
         <div className="text-xs text-gray-400 font-bold select-none">
           {formatPostedDate(job.postedDate)}
         </div>

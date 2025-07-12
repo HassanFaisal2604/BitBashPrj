@@ -274,7 +274,7 @@ export default function App() {
             {filtered.map((job, index) => (
               <div
                 key={job.id}
-                className="animate-fade-in"
+                className="flex animate-fade-in"
                 style={{
                   animationDelay: `${index * 50}ms`,
                 }}
