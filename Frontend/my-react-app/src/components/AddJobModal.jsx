@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { X, Loader2 } from 'lucide-react'
 import ModalPortal from './ModalPortal'
 
@@ -13,6 +13,9 @@ function AddJobModal({ show, onAdd, onClose }) {
   })
   const [isSaving, setIsSaving] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
+
+  // Auto-focus first input to reduce user friction
+  const firstInputRef = useRef(null)
 
   // Handle modal animations
   useEffect(() => {
@@ -118,6 +121,7 @@ function AddJobModal({ show, onAdd, onClose }) {
                   value={form[field]}
                   onChange={handleChange}
                   required
+                  ref={field === 'title' ? firstInputRef : undefined}
                   className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition-all duration-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 hover:border-gray-400"
                   placeholder={`Enter ${field}...`}
                 />

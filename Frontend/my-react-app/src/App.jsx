@@ -198,7 +198,7 @@ export default function App() {
             </div>
             <button
               onClick={() => setShowAdd(true)}
-              className="inline-flex items-center rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-medium text-white transition-all duration-200 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl hover:shadow-blue-500/25 hover:ring-1 hover:ring-blue-400/50"
+              className="inline-flex items-center rounded-xl bg-indigo-600 px-4 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-medium text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg hover:shadow-indigo-500/20"
             >
               <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
               <span className="hidden sm:inline">Post a Job</span>

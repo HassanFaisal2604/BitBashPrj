@@ -1,41 +1,33 @@
 import React from 'react'
-import { Building, MapPin, Calendar, DollarSign, Clock } from 'lucide-react'
+import { Building, MapPin, DollarSign } from 'lucide-react'
 import JobActions from './JobActions'
 
-const tagColors = {
-  // Keep only critical info with colors
-  Salary: 'bg-green-100 text-green-800 border-green-200',
-  'Job Type': 'bg-blue-100 text-blue-800 border-blue-200',
-  // Job type tags
-  'Full-Time': 'bg-blue-100 text-blue-800 border-blue-200',
-  'Internship': 'bg-purple-100 text-purple-800 border-purple-200',
-  'Part-Time': 'bg-green-100 text-green-800 border-green-200',
-  'Contract': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  
-  // Everything else gets neutral gray
-  Pricing: 'bg-gray-100 text-gray-700 border-gray-200',
-  Health: 'bg-gray-100 text-gray-700 border-gray-200',
-  'Life Insurance': 'bg-gray-100 text-gray-700 border-gray-200',
-  Pensions: 'bg-gray-100 text-gray-700 border-gray-200',
-  'P&C': 'bg-gray-100 text-gray-700 border-gray-200',
-  'Data Science': 'bg-gray-100 text-gray-700 border-gray-200',
-  'Machine Learning': 'bg-gray-100 text-gray-700 border-gray-200',
-  Leadership: 'bg-gray-100 text-gray-700 border-gray-200',
-  Python: 'bg-gray-100 text-gray-700 border-gray-200',
-  SQL: 'bg-gray-100 text-gray-700 border-gray-200',
-  R: 'bg-gray-100 text-gray-700 border-gray-200',
-  Excel: 'bg-gray-100 text-gray-700 border-gray-200',
-  'Entry Level': 'bg-gray-100 text-gray-700 border-gray-200',
+// New color palette mapping based on design system
+const COLOR_PALETTE = {
+  primaryAccent: 'text-indigo-600', // #6366F1 approximated with indigo-600
+  successBg: 'bg-emerald-100',     // #10B981 approximated with emerald-100
+  successText: 'text-emerald-700',
+  neutralTagBg: 'bg-gray-200',     // #E5E7EB
+  neutralTagText: 'text-gray-700', // #374151 approx
+  borderNeutral: 'border-gray-300',
 }
 
-// Dynamic badge styling for the primary job type pill rendered beside location
-const jobTypeBadge = {
-  'Full-Time': 'bg-blue-50 text-blue-700',
-  'Part-Time': 'bg-green-50 text-green-700',
-  'Internship': 'bg-purple-50 text-purple-700',
-  'Contract': 'bg-yellow-50 text-yellow-700',
+// Simplified tag colors following new color system
+const tagColors = {
+  Salary: `${COLOR_PALETTE.successBg} ${COLOR_PALETTE.successText} ${COLOR_PALETTE.borderNeutral}`,
+  // Default mapping will use neutral styling defined in getTagColor()
 }
-const getTagColor = (tag) => tagColors[tag] || 'bg-gray-100 text-gray-700 border-gray-200'
+
+// Job type badges use neutral grey background for consistency
+const jobTypeBadge = {
+  'Full-Time': `${COLOR_PALETTE.neutralTagBg} ${COLOR_PALETTE.neutralTagText}`,
+  'Part-Time': `${COLOR_PALETTE.neutralTagBg} ${COLOR_PALETTE.neutralTagText}`,
+  'Internship': `${COLOR_PALETTE.neutralTagBg} ${COLOR_PALETTE.neutralTagText}`,
+  'Contract': `${COLOR_PALETTE.neutralTagBg} ${COLOR_PALETTE.neutralTagText}`,
+}
+
+// Fallback to neutral styling for all unspecified tags
+const getTagColor = (tag) => tagColors[tag] || `${COLOR_PALETTE.neutralTagBg} ${COLOR_PALETTE.neutralTagText} ${COLOR_PALETTE.borderNeutral}`
 
 function JobCard({ job, onDelete, onUpdate }) {
   const { flash } = job
@@ -68,21 +60,21 @@ function JobCard({ job, onDelete, onUpdate }) {
 
   return (
     <div className={`
-      group relative bg-white border border-gray-200 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 
-      hover:shadow-xl hover:shadow-gray-200/80 hover:border-gray-300 hover:-translate-y-1
+      group relative bg-white border ${COLOR_PALETTE.borderNeutral} rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-5
+      cursor-pointer
+      hover:shadow-md hover:shadow-gray-300/70 hover:scale-[1.02] hover:border-gray-300
       transition-all duration-300 ease-out w-full overflow-hidden
-      hover:ring-1 hover:ring-gray-200/50
-      ${flash ? 'ring-2 ring-green-400 animate-pulse' : ''}
+      ${flash ? 'ring-2 ring-emerald-400 animate-pulse' : ''}
     `}>
       {/* Mobile-optimized header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-4 gap-2 sm:gap-3">
         <div className="flex-1 min-w-0 overflow-hidden">
-          <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-1 sm:mb-2 leading-snug line-clamp-2 group-hover:text-blue-600 group-hover:underline transition-colors duration-200 break-words">
+          <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2 leading-snug line-clamp-2 group-hover:text-indigo-600 group-hover:underline transition-colors duration-200 break-words">
             {job.title}
           </h3>
-          <div className="flex items-center text-sm sm:text-base lg:text-lg text-blue-600 font-semibold mb-1 sm:mb-2 hover:text-blue-700 transition-colors duration-200 min-w-0">
-            <Building className="w-4 h-4 sm:w-4 sm:h-4 mr-2 flex-shrink-0" />
-            <span className="truncate">{job.company}</span>
+          <div className="flex items-center text-sm sm:text-base lg:text-lg text-gray-600 font-normal mb-1 sm:mb-2 min-w-0">
+            <Building className="w-4 h-4 sm:w-4 sm:h-4 mr-2 flex-shrink-0 opacity-70" />
+            <span className="truncate opacity-90">{job.company}</span>
           </div>
           <div className="flex items-center text-sm sm:text-sm text-gray-500 mb-2 sm:mb-3 flex-wrap gap-1">
             <div className="flex items-center min-w-0">
@@ -95,21 +87,16 @@ function JobCard({ job, onDelete, onUpdate }) {
             </span>
           </div>
           {job.salary && (
-            <div className="flex items-center text-sm sm:text-sm text-green-600 font-medium mb-2 sm:mb-3 bg-green-50 px-2 sm:px-3 py-1 rounded-lg w-fit">
+            <div className={`flex items-center text-sm sm:text-sm ${COLOR_PALETTE.successText} font-medium mb-2 sm:mb-3 ${COLOR_PALETTE.successBg} px-2 sm:px-3 py-1 rounded-lg w-fit`}>
               <DollarSign className="w-4 h-4 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
               <span className="truncate">{job.salary}</span>
             </div>
           )}
         </div>
-        <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-start gap-2 sm:gap-2 flex-shrink-0">
-          <div className="text-xs sm:text-xs text-gray-400 flex items-center whitespace-nowrap">
-            <Clock className="w-3 h-3 mr-1" />
-            <span>{formatPostedDate(job.postedDate)}</span>
-          </div>
-        </div>
+        {/* Removed time display from header, will be repositioned at card bottom */}
       </div>
 
-      {/* Tags with improved mobile layout */}
+      {/* Tags */}
       <div className="flex flex-wrap gap-1 sm:gap-2 mb-4 sm:mb-6 overflow-hidden">
         {visibleTags.map((tag, index) => (
           <span 
@@ -136,6 +123,11 @@ function JobCard({ job, onDelete, onUpdate }) {
       {/* Enhanced actions section */}
       <div className="transform transition-all duration-200 group-hover:translate-y-0">
         <JobActions job={job} onDelete={onDelete} onUpdate={onUpdate} />
+      </div>
+
+      {/* Posted time placed bottom right with muted text */}
+      <div className="absolute bottom-3 right-4 text-xs text-gray-400 select-none">
+        {formatPostedDate(job.postedDate)}
       </div>
 
       {/* Subtle hover indicator */}

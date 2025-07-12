@@ -204,7 +204,7 @@ cd Backend
 export FLASK_APP=run:create_app
 export FLASK_ENV=development
 flask run
-# Backend will be available at http://localhost:5000
+# Backend will be available at http://localhost:5000/api/jobs
 ```
 
 **Frontend (Terminal 2):**
