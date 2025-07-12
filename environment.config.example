@@ -1,0 +1,13 @@
+# Frontend Environment Variables
+# For local development, use your local Flask server
+VITE_API_BASE=http://127.0.0.1:5000/api
+
+# Backend Environment Variables
+# Database configuration
+DATABASE_URL=postgresql://username:password@localhost/bitbash_db
+
+# Flask configuration
+SECRET_KEY=your-secret-key-here
+
+# Scraper configuration
+PAGES_TO_SCRAPE=2 

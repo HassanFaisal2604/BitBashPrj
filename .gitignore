@@ -4,3 +4,4 @@ node_modules/
 .DS_Store
 Frontend/my-react-app/dist/
 Frontend/my-react-app/.vite
+.vercel
