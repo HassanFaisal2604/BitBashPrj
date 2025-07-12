@@ -2,7 +2,7 @@
 // You can override the base URL at runtime by defining VITE_API_BASE in an .env file.
 
 // Ensure no trailing slash to avoid double slashes when we append paths
-const API_BASE = (import.meta.env.VITE_API_BASE ?? 'http://127.0.0.1:5000/api').replace(/\/$/, '')
+const API_BASE = (import.meta.env.VITE_API_BASE ?? '/api').replace(/\/$/, '')
 
 function handleResponse(res) {
   if (!res.ok) {

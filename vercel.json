@@ -1,18 +1,7 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "Frontend/my-react-app/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    },
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    }
-  ],
+  "buildCommand": "cd Frontend/my-react-app && npm install && npm run build",
+  "outputDirectory": "Frontend/my-react-app/dist",
+  "installCommand": "cd Frontend/my-react-app && npm install",
   "rewrites": [
     {
       "source": "/api/(.*)",

@@ -64,7 +64,7 @@ class Job(Base):
     @classmethod
     def query(cls):  # type: ignore
         """Shorthand to enable Job.query semantics."""
-        return session.query(cls)
+        return get_session().query(cls)
 
 # --- 2. PostgreSQL connection (Neon-compatible) ---
 # Preferred: full URL in .env (e.g., DATABASE_URL="postgresql+psycopg2://user:pass@host/db?sslmode=require")
@@ -79,28 +79,41 @@ if not DATABASE_URL:
     DB_NAME = os.getenv("NEON_DB", "postgres")
     DATABASE_URL = f"postgresql+psycopg2://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}?sslmode=require"
 
-# Optimize engine configuration for better performance
-engine = create_engine(
-    DATABASE_URL,
-    pool_size=10,          # Connection pool size
-    max_overflow=20,       # Additional connections beyond pool_size
-    pool_pre_ping=True,    # Validate connections before use
-    pool_recycle=3600,     # Recycle connections every hour
-)
+# Ensure DATABASE_URL is not None
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL must be set in environment variables")
 
-# Create table if it doesn't exist
-Base.metadata.create_all(engine)
-Session = sessionmaker(bind=engine)
-session = Session()
+# Global variables for engine and session
+_engine = None
+_session = None
 
-# --- 3. Database initialization ---
-# Database tables are created automatically via Base.metadata.create_all(engine)
+def get_engine():
+    """Get or create the database engine."""
+    global _engine
+    if _engine is None:
+        # Ensure DATABASE_URL is available
+        if not DATABASE_URL:
+            raise ValueError("DATABASE_URL must be set in environment variables")
+        # Optimize engine configuration for serverless
+        _engine = create_engine(
+            DATABASE_URL,
+            pool_size=1,           # Smaller pool for serverless
+            max_overflow=0,        # No overflow for serverless
+            pool_pre_ping=True,    # Validate connections before use
+            pool_recycle=300,      # Recycle connections every 5 minutes
+        )
+        # Create table if it doesn't exist
+        Base.metadata.create_all(_engine)
+    return _engine
 
-# --- 4. (Optional) Debug print of first few rows ---
-try:
-    print("\n=== Sample jobs ===")
-    for job in session.query(Job).order_by(Job.Job_ID).limit(10):
-        print(f"{job.Job_ID:>6}  {job.Job_Title[:40]:40}  {job.Company_Name}")
-except Exception:
-    pass  # ignore errors if the table is empty
+def get_session():
+    """Get or create the database session."""
+    global _session
+    if _session is None:
+        Session = sessionmaker(bind=get_engine())
+        _session = Session()
+    return _session
+
+# For backward compatibility
+session = get_session()
 

@@ -33,7 +33,7 @@ def create_app(config_class=Config):
             pass
         return jsonify({'error': 'Internal server error'}), 500
 
-    # Import and register blueprints (placed after app & extensions init to avoid circular imports)
+    # Import and register blueprints with /api prefix
     from .api.routes import bp as api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
 
