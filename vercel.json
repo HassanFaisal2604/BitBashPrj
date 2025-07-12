@@ -1,5 +1,4 @@
 {
-  "version": 2,
   "builds": [
     {
       "src": "Frontend/my-react-app/package.json",
@@ -20,7 +19,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/Frontend/my-react-app/dist/$1"
+      "dest": "/Frontend/my-react-app/dist/index.html"
     }
   ]
 } 
