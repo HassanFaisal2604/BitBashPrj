@@ -1,5 +1,5 @@
 import React from 'react'
-import { Building, MapPin, Calendar, DollarSign, ExternalLink } from 'lucide-react'
+import { Building, MapPin, Calendar, DollarSign, ExternalLink, Clock } from 'lucide-react'
 import JobActions from './JobActions'
 
 const tagColors = {
@@ -45,63 +45,68 @@ function JobCard({ job, onDelete, onUpdate }) {
     return `${days}d ago`
   }
 
+  const visibleTags = job.tags.slice(0, 3)
+  const remainingTagsCount = job.tags.length - 3
+
   return (
     <div className={`
-      group relative bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm
-      hover:shadow-md hover:border-gray-300 hover:-translate-y-1
-      transition-all duration-300 ease-out
+      group relative bg-white border border-gray-200 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 
+      hover:shadow-lg hover:shadow-gray-200/50 hover:border-gray-300 hover:-translate-y-1
+      transition-all duration-300 ease-out w-full overflow-hidden
       ${flash ? 'ring-2 ring-green-400 animate-pulse' : ''}
     `}>
       {/* Mobile-optimized header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-3">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 leading-tight line-clamp-2 group-hover:text-blue-600 transition-colors duration-200">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-4 gap-2 sm:gap-3">
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors duration-200 break-words">
             {job.title}
           </h3>
-          <div className="flex items-center text-base sm:text-lg text-gray-600 mb-2 hover:text-gray-800 transition-colors duration-200">
-            <Building className="w-4 h-4 mr-2 flex-shrink-0" />
+          <div className="flex items-center text-sm sm:text-base lg:text-lg text-blue-600 font-semibold mb-1 sm:mb-2 hover:text-blue-700 transition-colors duration-200 min-w-0">
+            <Building className="w-4 h-4 sm:w-4 sm:h-4 mr-2 flex-shrink-0" />
             <span className="truncate">{job.company}</span>
           </div>
-          <div className="flex items-center text-sm text-gray-500 mb-3">
-            <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
-            <span className="truncate mr-2">{job.location}</span>
-            <span className="text-gray-400">•</span>
-            <span className="ml-2 px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+          <div className="flex items-center text-sm sm:text-sm text-gray-500 mb-2 sm:mb-3 flex-wrap gap-1">
+            <div className="flex items-center min-w-0">
+              <MapPin className="w-4 h-4 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
+              <span className="truncate">{job.location}</span>
+            </div>
+            <span className="text-gray-400 px-1">•</span>
+            <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap">
               {job.type}
             </span>
           </div>
           {job.salary && (
-            <div className="flex items-center text-sm text-green-600 font-medium mb-3 bg-green-50 px-3 py-1 rounded-lg w-fit">
-              <DollarSign className="w-4 h-4 mr-1 flex-shrink-0" />
+            <div className="flex items-center text-sm sm:text-sm text-green-600 font-medium mb-2 sm:mb-3 bg-green-50 px-2 sm:px-3 py-1 rounded-lg w-fit">
+              <DollarSign className="w-4 h-4 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
               <span className="truncate">{job.salary}</span>
             </div>
           )}
         </div>
-        <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-start gap-2">
-          <div className="text-xs text-gray-400 flex items-center">
-            <Calendar className="w-3 h-3 mr-1" />
+        <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-start gap-2 sm:gap-2 flex-shrink-0">
+          <div className="text-xs sm:text-xs text-gray-400 flex items-center whitespace-nowrap">
+            <Clock className="w-3 h-3 mr-1" />
             <span>{formatPostedDate(job.postedDate)}</span>
           </div>
           {job.url && job.url !== '#' && (
             <button 
               onClick={() => window.open(job.url, '_blank')}
-              className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1 hover:bg-blue-50 rounded-full"
+              className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-2 hover:bg-blue-50 rounded-full touch-target-44 active:scale-95"
               aria-label="View job posting"
             >
-              <ExternalLink className="w-4 h-4" />
+              <ExternalLink className="w-4 h-4 sm:w-4 sm:h-4" />
             </button>
           )}
         </div>
       </div>
 
       {/* Tags with improved mobile layout */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {job.tags.slice(0, 6).map((tag, index) => (
+      <div className="flex flex-wrap gap-1 sm:gap-2 mb-4 sm:mb-6 overflow-hidden">
+        {visibleTags.map((tag, index) => (
           <span 
             key={tag} 
             className={`
-              px-3 py-1 rounded-full text-xs sm:text-sm font-medium border
-              transform hover:scale-105 transition-all duration-200
+              px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium border
+              transform hover:scale-105 transition-all duration-200 whitespace-nowrap
               ${getTagColor(tag)}
             `}
             style={{
@@ -111,9 +116,9 @@ function JobCard({ job, onDelete, onUpdate }) {
             {tag}
           </span>
         ))}
-        {job.tags.length > 6 && (
-          <span className="px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-gray-100 text-gray-600 border border-gray-200">
-            +{job.tags.length - 6} more
+        {remainingTagsCount > 0 && (
+          <span className="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200 transition-colors duration-200 whitespace-nowrap">
+            +{remainingTagsCount} more
           </span>
         )}
       </div>

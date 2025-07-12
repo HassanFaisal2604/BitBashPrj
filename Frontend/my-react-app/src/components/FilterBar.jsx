@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Search, MapPin, Filter, X, ChevronDown } from 'lucide-react'
+import { Search, MapPin, Filter, X, ChevronDown, Globe, Briefcase, Clock, DollarSign, TrendingUp } from 'lucide-react'
 
 function FilterBar({
   searchTerm,
@@ -11,9 +11,45 @@ function FilterBar({
   sortBy,
   setSortBy,
   clearFilters,
+  jobs = [], // Add jobs prop to calculate counts
 }) {
   const [showFilters, setShowFilters] = useState(false)
   const hasActiveFilters = locationFilter || typeFilter || searchTerm
+
+  // Calculate counts for filter options
+  const locationCounts = jobs.reduce((acc, job) => {
+    acc[job.location] = (acc[job.location] || 0) + 1
+    return acc
+  }, {})
+
+  const typeCounts = jobs.reduce((acc, job) => {
+    acc[job.type] = (acc[job.type] || 0) + 1
+    return acc
+  }, {})
+
+  const locationOptions = [
+    { value: '', label: 'All Locations', count: jobs.length },
+    { value: 'Remote', label: 'Remote', count: locationCounts['Remote'] || 0 },
+    { value: 'New York', label: 'New York', count: locationCounts['New York'] || 0 },
+    { value: 'Chicago', label: 'Chicago', count: locationCounts['Chicago'] || 0 },
+    { value: 'California', label: 'California', count: locationCounts['California'] || 0 },
+  ]
+
+  const typeOptions = [
+    { value: '', label: 'All Types', count: jobs.length },
+    { value: 'Full-Time', label: 'Full-Time', count: typeCounts['Full-Time'] || 0 },
+    { value: 'Part-Time', label: 'Part-Time', count: typeCounts['Part-Time'] || 0 },
+    { value: 'Internship', label: 'Internship', count: typeCounts['Internship'] || 0 },
+    { value: 'Contract', label: 'Contract', count: typeCounts['Contract'] || 0 },
+  ]
+
+  const sortOptions = [
+    { value: 'newest', label: 'Newest First', icon: Clock },
+    { value: 'oldest', label: 'Oldest First', icon: Clock },
+    { value: 'salary_high', label: 'Highest Salary', icon: DollarSign },
+    { value: 'salary_low', label: 'Lowest Salary', icon: DollarSign },
+    { value: 'relevance', label: 'Most Relevant', icon: TrendingUp },
+  ]
 
   return (
     <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40 backdrop-blur-sm">
@@ -69,14 +105,19 @@ function FilterBar({
                 Clear all
               </button>
             )}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="appearance-none bg-white border border-gray-300 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200"
-            >
-              <option value="newest">Newest</option>
-              <option value="oldest">Oldest</option>
-            </select>
+            <div className="relative">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="appearance-none bg-white border border-gray-300 rounded-lg px-3 py-2 pr-8 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200"
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -90,30 +131,37 @@ function FilterBar({
               <select
                 value={locationFilter}
                 onChange={(e) => setLocationFilter(e.target.value)}
-                className="appearance-none w-full bg-white border border-gray-300 rounded-lg px-4 py-3 pr-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200"
+                className={`
+                  appearance-none w-full bg-white border rounded-lg px-4 py-3 pr-10 
+                  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200
+                  ${locationFilter ? 'border-blue-300 bg-blue-50' : 'border-gray-300'}
+                `}
               >
-                <option value="">All Locations</option>
-                <option value="Remote">Remote</option>
-                <option value="New York">New York</option>
-                <option value="Chicago">Chicago</option>
-                <option value="California">California</option>
+                {locationOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
-              <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+              <Globe className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
             </div>
             <div className="relative">
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="appearance-none w-full bg-white border border-gray-300 rounded-lg px-4 py-3 pr-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200"
+                className={`
+                  appearance-none w-full bg-white border rounded-lg px-4 py-3 pr-10 
+                  focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200
+                  ${typeFilter ? 'border-blue-300 bg-blue-50' : 'border-gray-300'}
+                `}
               >
-                <option value="">All Types</option>
-                {['Full-Time', 'Part-Time', 'Internship', 'Contract'].map((t) => (
-                  <option key={t} value={t}>
-                    {t}
+                {typeOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label} ({option.count})
                   </option>
                 ))}
               </select>
-              <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+              <Briefcase className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
             </div>
           </div>
         </div>
@@ -126,30 +174,39 @@ function FilterBar({
                 <select
                   value={locationFilter}
                   onChange={(e) => setLocationFilter(e.target.value)}
-                  className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-3 pr-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 hover:border-gray-400 hover:shadow-sm"
+                  className={`
+                    appearance-none bg-white border rounded-lg px-4 py-3 pr-10 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 
+                    hover:border-gray-400 hover:shadow-sm
+                    ${locationFilter ? 'border-blue-300 bg-blue-50 text-blue-700' : 'border-gray-300'}
+                  `}
                 >
-                  <option value="">All Locations</option>
-                  <option value="Remote">Remote</option>
-                  <option value="New York">New York</option>
-                  <option value="Chicago">Chicago</option>
-                  <option value="California">California</option>
+                  {locationOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
-                <MapPin className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+                <Globe className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
               </div>
               <div className="relative">
                 <select
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
-                  className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-3 pr-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 hover:border-gray-400 hover:shadow-sm"
+                  className={`
+                    appearance-none bg-white border rounded-lg px-4 py-3 pr-10 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 
+                    hover:border-gray-400 hover:shadow-sm
+                    ${typeFilter ? 'border-blue-300 bg-blue-50 text-blue-700' : 'border-gray-300'}
+                  `}
                 >
-                  <option value="">All Types</option>
-                  {['Full-Time', 'Part-Time', 'Internship', 'Contract'].map((t) => (
-                    <option key={t} value={t}>
-                      {t}
+                  {typeOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label} ({option.count})
                     </option>
                   ))}
                 </select>
-                <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+                <Briefcase className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
               </div>
             </div>
           </div>
@@ -168,9 +225,13 @@ function FilterBar({
                 onChange={(e) => setSortBy(e.target.value)}
                 className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-3 pr-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all duration-200 hover:border-gray-400 hover:shadow-sm"
               >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
             </div>
           </div>
         </div>

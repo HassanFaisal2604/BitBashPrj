@@ -182,11 +182,11 @@ export default function App() {
   })
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 w-full overflow-x-hidden">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm sticky top-0 z-30">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4 sm:py-6">
+        <div className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6 xl:px-8">
+          <div className="flex items-center justify-between py-3 sm:py-4 lg:py-6">
             <div className="flex items-center space-x-3">
               <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg">
                 <Building className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
@@ -220,11 +220,12 @@ export default function App() {
           sortBy,
           setSortBy,
           clearFilters,
+          jobs: filtered, // Pass filtered jobs for count calculation
         }}
       />
 
       {/* Main Content */}
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+      <main className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6 xl:px-8 py-4 sm:py-6 lg:py-8">
         {/* Stats Header */}
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-2 mb-2">
@@ -242,7 +243,7 @@ export default function App() {
 
         {/* Loading State */}
         {loading && (
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 lg:gap-6 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, idx) => (
               <SkeletonCard key={idx} />
             ))}
@@ -262,7 +263,7 @@ export default function App() {
 
         {/* Jobs Grid */}
         {!loading && !error && (
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 lg:gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filtered.map((job, index) => (
               <div
                 key={job.id}
