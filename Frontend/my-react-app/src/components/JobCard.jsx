@@ -73,7 +73,7 @@ function JobCard({ job, onDelete, onUpdate }) {
         {/* Mobile-optimized header */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-4 gap-2 sm:gap-3">
           <div className="flex-1 min-w-0 overflow-hidden">
-            <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2 leading-snug line-clamp-2 group-hover:text-indigo-600 group-hover:underline transition-colors duration-200 break-words">
+            <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2 leading-snug line-clamp-2 transition-colors duration-200 break-words">
               {job.title}
             </h3>
             <div className="flex items-center text-sm sm:text-base lg:text-lg text-gray-600 font-normal mb-1 sm:mb-2 min-w-0">
