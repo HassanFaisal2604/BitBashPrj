@@ -1,6 +1,7 @@
 import React from 'react'
 import { Building, MapPin, DollarSign } from 'lucide-react'
 import JobActions from './JobActions'
+import { Clock } from 'lucide-react'
 
 // New color palette mapping based on design system
 const COLOR_PALETTE = {
@@ -79,7 +80,7 @@ function JobCard({ job, onDelete, onUpdate }) {
               <Building className="w-4 h-4 sm:w-4 sm:h-4 mr-2 flex-shrink-0 opacity-70" />
               <span className="truncate opacity-90">{job.company}</span>
             </div>
-            <div className="flex items-center text-sm sm:text-sm text-gray-500 mb-2 sm:mb-3 flex-wrap gap-1">
+            <div className="flex items-center text-sm sm:text-sm text-gray-500 mb-1 sm:mb-2 flex-wrap gap-1">
               <div className="flex items-center min-w-0">
                 <MapPin className="w-4 h-4 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
                 <span className="truncate">{job.location}</span>
@@ -88,6 +89,11 @@ function JobCard({ job, onDelete, onUpdate }) {
               <span className={`px-2 py-1 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap ${jobTypeBadge[job.type] || 'bg-gray-100 text-gray-700'}`}>
                 {job.type}
               </span>
+            </div>
+            {/* Timestamp directly below location/type for better visibility */}
+            <div className="flex items-center text-xs sm:text-sm text-gray-400 mb-2 sm:mb-3 gap-1">
+              <Clock className="w-3 h-3 flex-shrink-0" />
+              <span>{formatPostedDate(job.postedDate)}</span>
             </div>
             {job.salary && (
               <div className={`flex items-center text-sm sm:text-sm ${COLOR_PALETTE.successText} font-medium mb-2 sm:mb-3 ${COLOR_PALETTE.successBg} px-2 sm:px-3 py-1 rounded-lg w-fit`}>
@@ -125,16 +131,13 @@ function JobCard({ job, onDelete, onUpdate }) {
 
       </div> {/* End of flex-grow body */}
 
-      {/* Sticky footer */}
-      <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
-        <div className="text-xs text-gray-400 font-bold select-none">
-          {formatPostedDate(job.postedDate)}
-        </div>
+      {/* Sticky footer (no timestamp, only actions) */}
+      <div className="flex items-center justify-end mt-auto pt-4 border-t border-gray-100">
         <JobActions job={job} onDelete={onDelete} onUpdate={onUpdate} inline />
       </div>
 
-      {/* Subtle hover indicator */}
-      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/0 to-purple-500/0 group-hover:from-blue-500/5 group-hover:to-purple-500/5 transition-all duration-300 pointer-events-none" />
+      {/* Subtle hover tint instead of vivid purple gradient */}
+      <div className="absolute inset-0 rounded-xl bg-indigo-500/0 group-hover:bg-indigo-500/5 transition-all duration-300 pointer-events-none" />
     </div>
   )
 }
