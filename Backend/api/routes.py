@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from datetime import datetime
 import hashlib
+from sqlalchemy import asc, desc
 
 # Import Job model and database session from models.py
 from .models import Job, session
@@ -68,16 +69,16 @@ def get_jobs():
 
     if sort == 'posting_date_desc':
         # Newest first - use computed column for fast sorting
-        query = query.order_by(Job.posting_age_hours.asc())  # Lower hours = more recent
+        query = query.order_by(asc(Job.posting_age_hours))  # type: ignore # Lower hours = more recent
     elif sort == 'posting_date_asc':
         # Oldest first
-        query = query.order_by(Job.posting_age_hours.desc())
+        query = query.order_by(desc(Job.posting_age_hours))  # type: ignore
     elif sort == 'salary_high':
         # High to low salary - use computed column
-        query = query.order_by(Job.salary_numeric.desc())
+        query = query.order_by(desc(Job.salary_numeric))  # type: ignore
     elif sort == 'salary_low':
         # Low to high salary
-        query = query.order_by(Job.salary_numeric.asc())
+        query = query.order_by(asc(Job.salary_numeric))  # type: ignore
     else:
         # Default sorting (newest first by scraped_on)
         query = query.order_by(Job.scraped_on.desc())

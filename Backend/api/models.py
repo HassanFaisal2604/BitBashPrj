@@ -52,11 +52,12 @@ class Job(Base):
     # ------------------------------
     def _compute_salary_numeric(self) -> float:
         """Convert salary text to a comparable float (USD)."""
-        if not self.Salary or 'not specified' in self.Salary.lower():
+        salary_value = str(self.Salary or "")
+        if not salary_value or 'not specified' in salary_value.lower():
             return 0.0
 
         # Remove commas for cleaner numeric extraction
-        s_clean = self.Salary.replace(',', '')
+        s_clean = salary_value.replace(',', '')
         # Find all numeric parts (handles ranges "110-150k" or "$120k")
         nums = re.findall(r"\d+(?:\.\d+)?", s_clean)
         if not nums:
@@ -68,7 +69,8 @@ class Job(Base):
             # Locate the position of this number in the original string to detect following 'k'
             pos = s_clean.find(num, idx)
             idx = pos + len(num)
-            multiplier = 1_000 if pos < len(s_clean) and s_clean[pos:pos+1].lower() == 'k' else 1
+            # Check if 'k' appears immediately after the number
+            multiplier = 1_000 if idx < len(s_clean) and s_clean[idx].lower() == 'k' else 1
             values.append(float(num) * multiplier)
 
         # Use average of range if multiple numbers; otherwise the single value
@@ -76,10 +78,11 @@ class Job(Base):
         
     def _compute_posting_age_hours(self) -> float:
         """Return approximate hours since posting based on textual Posting_Date."""
-        if not self.Posting_Date:
+        posting_date_value = str(self.Posting_Date or "")
+        if not posting_date_value:
             return float('inf')  # Treat unknown as oldest
 
-        s_low = self.Posting_Date.lower().strip()
+        s_low = posting_date_value.lower().strip()
 
         # Handle keywords
         if 'recent' in s_low:
@@ -116,11 +119,22 @@ class Job(Base):
             weeks = int(m.group(1)) if m else 1
             return float(weeks * 24 * 7)
 
-        # Attempt to parse as date string YYYY-MM-DD
+        # Attempt to parse as date string YYYY-MM-DD or ISO format
         try:
             from dateutil import parser as dateparser  # type: ignore
-            dt = dateparser.parse(self.Posting_Date)
+            dt = dateparser.parse(posting_date_value)
+            
+            # Make both datetimes timezone-naive for comparison
+            if dt.tzinfo is not None:
+                dt = dt.replace(tzinfo=None)  # Remove timezone info
+            
             age_hours = (datetime.utcnow() - dt).total_seconds() / 3600.0
+            
+            # Handle future dates (negative age) - assign a very high value but not infinity
+            # This ensures they appear last in both newest-first and oldest-first sorting
+            if age_hours < 0:
+                return 999999.0  # Very high but finite value
+            
             return age_hours
         except Exception:
             pass
