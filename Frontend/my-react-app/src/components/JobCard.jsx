@@ -72,15 +72,15 @@ function JobCard({ job, onDelete, onUpdate }) {
 
         {/* Mobile-optimized header */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-4 gap-2 sm:gap-3">
-          <div className="flex-1 min-w-0 overflow-hidden">
-            <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-1 sm:mb-2 leading-snug line-clamp-2 transition-colors duration-200 break-words">
+          <div className="flex-1 min-w-0 overflow-hidden flex flex-col space-y-2">
+            <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-snug line-clamp-2 transition-colors duration-200 break-words">
               {job.title}
             </h3>
-            <div className="flex items-center text-sm sm:text-base lg:text-lg text-gray-600 font-normal mb-1 sm:mb-2 min-w-0">
+            <div className="flex items-center text-sm sm:text-base lg:text-lg text-gray-600 font-normal min-w-0">
               <Building className="w-4 h-4 sm:w-4 sm:h-4 mr-2 flex-shrink-0 opacity-70" />
               <span className="truncate opacity-90">{job.company}</span>
             </div>
-            <div className="flex items-center text-sm sm:text-sm text-gray-500 mb-1 sm:mb-2 flex-wrap gap-1">
+            <div className="flex items-center text-sm sm:text-sm text-gray-500 flex-wrap gap-1">
               <div className="flex items-center min-w-0">
                 <MapPin className="w-4 h-4 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
                 <span className="truncate">{job.location}</span>
@@ -90,19 +90,21 @@ function JobCard({ job, onDelete, onUpdate }) {
                 {job.type}
               </span>
             </div>
-            {/* Timestamp directly below location/type for better visibility */}
-            <div className="flex items-center text-xs sm:text-sm text-gray-400 mb-2 sm:mb-3 gap-1">
-              <Clock className="w-3 h-3 flex-shrink-0" />
-              <span>{formatPostedDate(job.postedDate)}</span>
-            </div>
+            {/* (Removed timestamp from here; will display below header) */}
             {job.salary && (
-              <div className={`flex items-center text-sm sm:text-sm ${COLOR_PALETTE.successText} font-medium mb-2 sm:mb-3 ${COLOR_PALETTE.successBg} px-2 sm:px-3 py-1 rounded-lg w-fit`}>
+              <div className={`flex items-center text-sm sm:text-sm ${COLOR_PALETTE.successText} font-medium ${COLOR_PALETTE.successBg} px-2 sm:px-3 py-1 rounded-lg w-fit`}>
                 <DollarSign className="w-4 h-4 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
                 <span className="truncate">{job.salary}</span>
               </div>
             )}
           </div>
           {/* Removed time display from header, will be repositioned at card bottom */}
+        </div>
+
+        {/* Timestamp placed just above tags for greater emphasis */}
+        <div className="flex items-center text-xs sm:text-sm text-gray-500 gap-1 mb-3">
+          <Clock className="w-3 h-3 flex-shrink-0" />
+          <span className="font-semibold">{formatPostedDate(job.postedDate)}</span>
         </div>
 
         {/* Tags */}
