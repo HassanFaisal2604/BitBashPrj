@@ -180,12 +180,7 @@ copy .env.example .env  # Create this file with your config
 
 #### 4. Database Setup
 ```cmd
-# Make sure PostgreSQL is running locally or use a cloud database
-# Update your .env file with database credentials
-
-# Initialize database (if needed)
-cd Backend
-python -c "from run import create_app; app = create_app(); app.app_context().push(); from api.models import db; db.create_all()"
+No need to setup Database locally as it is using cloud PostgreSQL, 
 ```
 
 ## 🔧 Development

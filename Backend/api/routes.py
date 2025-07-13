@@ -29,8 +29,14 @@ def _is_cache_valid(timestamp):
 def get_jobs():
     """Fetch a list of jobs with optional filtering and sorting - OPTIMIZED VERSION."""
     
-    # Generate cache key from request parameters
-    cache_key = _get_cache_key(request.args.to_dict())
+    # Generate cache key from request parameters (including sort)
+    params_for_cache = request.args.to_dict()
+    
+    # Ensure sort parameter is included in cache key
+    sort_param = request.args.get('sort', 'posting_date_desc')
+    params_for_cache['sort'] = sort_param
+    
+    cache_key = _get_cache_key(params_for_cache)
     
     # Check cache first
     if cache_key in _query_cache:
@@ -82,7 +88,7 @@ def get_jobs():
     # Convert to dict (this is still needed for JSON serialization)
     jobs_data = [job.to_dict() for job in jobs]
     
-    # Cache the result
+    # Cache the result with sort parameter included in key
     _query_cache[cache_key] = (jobs_data, datetime.utcnow())
     
     # Clean old cache entries (simple cleanup)
