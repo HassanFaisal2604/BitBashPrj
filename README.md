@@ -10,7 +10,7 @@ A complete job-listing web platform that pulls live actuarial vacancies from Act
 
 **🚀 Live Demo:** https://bitbash-project.vercel.app/
 
-**Demonstration Video** https://drive.google.com/file/d/1HzvrBYMZqSMyMSInBZimH4mK9f3ERWPE/view?usp=sharing
+ **🎥Demonstration Video** https://drive.google.com/file/d/1HzvrBYMZqSMyMSInBZimH4mK9f3ERWPE/view?usp=sharing
 
 ## 📋 Table of Contents
 
