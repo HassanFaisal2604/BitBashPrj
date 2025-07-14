@@ -109,7 +109,7 @@ BitBash showcases comprehensive full-stack web development skills through a spec
 
 | Skill Category | Specific Competencies |
 |----------------|----------------------|
-| **Programming Languages** | Python, JavaScript (ES6+), HTML5, CSS3 |
+| **Programming Languages** | Python, JavaScript (ES6+), HTML5, CSS|
 | **Frameworks & Libraries** | React, Flask, SQLAlchemy, Tailwind CSS |
 | **Database Management** | PostgreSQL, SQL queries, ORM usage |
 | **Web Technologies** | RESTful APIs, CORS, HTTP protocols |
@@ -160,7 +160,7 @@ BitBashPrj/
 Before you begin, ensure you have the following installed:
 
 ### For macOS:
-- **Python 3.8+** (Check: `python3 --version`)
+- **Python 3.8+** (Check: `python--version`)
 - **Node.js 16+** (Check: `node --version`)
 - **npm 7+** (Check: `npm --version`)
 - **Git** (Check: `git --version`)
@@ -186,7 +186,7 @@ cd BitBashPrj
 #### 2. Backend Setup
 ```bash
 # Create and activate virtual environment
-python3 -m venv venv
+python-m venv venv
 source venv/bin/activate
 
 # Install Python dependencies
@@ -367,7 +367,7 @@ VITE_APP_NAME=BitBash Job Board
 👉 **[Live Demo](https://bitbash-project.vercel.app/)** - Fully functional deployment
 
 ### **Watch the Walkthrough**
-👉 **[Video Demo](https://drive.google.com/file/d/1HzvrBYMZqSMyMSInBZimH4mK9f3ERWPE/view?usp=sharing)** - 3-minute feature overview
+👉 **[Video Demo](https://drive.google.com/file/d/1HzvrBYMZqSMyMSInBZimH4mK9f3ERWPE/view?usp=sharing)** - 17-minute feature overview
 
 ### **What You Can Test**
 - Browse real job listings scraped from live sources
