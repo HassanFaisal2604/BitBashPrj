@@ -78,7 +78,7 @@ function JobCard({ job, onDelete, onUpdate }) {
             </h3>
             <div className="flex items-center text-sm sm:text-base lg:text-lg text-gray-600 font-normal min-w-0">
               <Building className="w-4 h-4 sm:w-4 sm:h-4 mr-2 flex-shrink-0 opacity-70" />
-              <span className="truncate opacity-90">{job.company}</span>
+              <span className="truncate opacity-90 font-bold">{job.company}</span>
             </div>
             <div className="flex items-center text-sm sm:text-sm text-gray-500 flex-wrap gap-1">
               <div className="flex items-center min-w-0">
@@ -92,7 +92,13 @@ function JobCard({ job, onDelete, onUpdate }) {
             </div>
             {/* (Removed timestamp from here; will display below header) */}
             {job.salary && (
-              <div className={`flex items-center text-sm sm:text-sm ${COLOR_PALETTE.successText} font-medium ${COLOR_PALETTE.successBg} px-2 sm:px-3 py-1 rounded-lg w-fit`}>
+              <div
+                className={`flex items-center text-sm sm:text-sm font-medium px-2 sm:px-3 py-1 rounded-lg w-fit ${
+                  job.salary === 'Not specified'
+                    ? 'bg-gray-100 text-gray-500'
+                    : `${COLOR_PALETTE.successText} ${COLOR_PALETTE.successBg}`
+                }`}
+              >
                 <DollarSign className="w-4 h-4 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
                 <span className="truncate">{job.salary}</span>
               </div>
