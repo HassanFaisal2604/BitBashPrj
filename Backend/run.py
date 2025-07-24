@@ -11,7 +11,8 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
 
     # no Flask-SQLAlchemy integration; models manage their own session
-    CORS(app) # Enable CORS
+    # Configure CORS to allow requests from React development server
+    CORS(app, origins=['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5001', 'http://127.0.0.1:5001', 'https://bitbash-project.vercel.app'])
 
     # Ensure session is removed after request context ends
     from .api.models import session as orm_session
