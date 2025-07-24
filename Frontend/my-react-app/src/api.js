@@ -1,19 +1,32 @@
-// Simple wrapper around the Flask API endpoints located at http://localhost:5001/api
+// Simple wrapper around the Flask API endpoints
 // You can override the base URL at runtime by defining VITE_API_BASE in an .env file.
 
 // Ensure no trailing slash to avoid double slashes when we append paths
-// Priority: 1) explicit env var 2) Vite dev fallback to local Flask 3) default relative `/api`
-let _base =
-    import.meta.env.VITE_API_BASE
+// Priority: 1) explicit env var 2) Environment detection 3) default fallback
+let _base = import.meta.env.VITE_API_BASE
+
 if (!_base) {
-    if (
-        import.meta.env.DEV) {
-        // Vite dev server is usually on 5173; backend (flask) on 5001 (5000 conflicts with macOS AirPlay)
-        _base = 'http://localhost:5001/api'
-    } else {
-        _base = '/api'
-    }
+  // Check if we're in development or production
+  const isDev = import.meta.env.DEV
+  const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost'
+  
+  if (isDev || isLocalhost) {
+    // Development: use local Flask server on port 5001 (5000 conflicts with macOS AirPlay)
+    _base = 'http://localhost:5001/api'
+  } else {
+    // Production: use relative path which will be handled by Vercel serverless functions
+    _base = '/api'
+  }
 }
+
+// Debug logging (remove in production if needed)
+console.log('API Configuration:', {
+  VITE_API_BASE: import.meta.env.VITE_API_BASE,
+  DEV: import.meta.env.DEV,
+  MODE: import.meta.env.MODE,
+  hostname: typeof window !== 'undefined' ? window.location.hostname : 'SSR',
+  final_base: _base
+})
 
 const API_BASE = _base.replace(/\/$/, '')
 
