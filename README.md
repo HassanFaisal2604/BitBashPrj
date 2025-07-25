@@ -8,9 +8,7 @@
 
 A complete job-listing web platform that pulls live actuarial vacancies from ActuaryList.com and provides a full CRUD interface to manage them. Built with modern web technologies and deployed on Vercel.
 
-**🚀 Live Demo:** https://bitbash-project.vercel.app/
-
- **🎥Demonstration Video** https://drive.google.com/file/d/1HzvrBYMZqSMyMSInBZimH4mK9f3ERWPE/view?usp=sharing
+**🚀 Live Demo:** https://actuwise.vercel.app/
 
 ## 📋 Table of Contents
 
