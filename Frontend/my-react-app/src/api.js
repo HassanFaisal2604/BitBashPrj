@@ -4,14 +4,14 @@
 // Ensure no trailing slash to avoid double slashes when we append paths
 // Priority: 1) explicit env var 2) Vite dev fallback to local Flask 3) default relative `/api`
 let _base = import.meta.env.VITE_API_BASE
-if (!_base) {
-  if (import.meta.env.DEV) {
-    // Vite dev server is usually on 5173; backend (flask) default 5000
-    _base = 'http://localhost:5000/api'
-  } else {
-    _base = '/api'
+  if (!_base) {
+    if (import.meta.env.DEV) {
+      // Vite dev server is usually on 5173; backend (flask) on 8000
+      _base = 'http://localhost:8000/api'
+    } else {
+      _base = '/api'
+    }
   }
-}
 
 const API_BASE = _base.replace(/\/$/, '')
 

@@ -189,7 +189,9 @@ if not DATABASE_URL:
 
 # Ensure DATABASE_URL is not None
 if not DATABASE_URL:
-    raise ValueError("DATABASE_URL must be set in environment variables")
+    # For development, use a default SQLite database
+    DATABASE_URL = "sqlite:///./dev.db"
+    print("Warning: DATABASE_URL not set, using SQLite for development")
 
 # Global variables for engine and session
 _engine = None
@@ -203,13 +205,21 @@ def get_engine():
         if not DATABASE_URL:
             raise ValueError("DATABASE_URL must be set in environment variables")
         # Optimize engine configuration for serverless
-        _engine = create_engine(
-            DATABASE_URL,
-            pool_size=1,           # Smaller pool for serverless
-            max_overflow=0,        # No overflow for serverless
-            pool_pre_ping=True,    # Validate connections before use
-            pool_recycle=300,      # Recycle connections every 5 minutes
-        )
+        if DATABASE_URL.startswith('sqlite'):
+            # SQLite configuration for development
+            _engine = create_engine(
+                DATABASE_URL,
+                connect_args={"check_same_thread": False}
+            )
+        else:
+            # PostgreSQL configuration for production
+            _engine = create_engine(
+                DATABASE_URL,
+                pool_size=1,           # Smaller pool for serverless
+                max_overflow=0,        # No overflow for serverless
+                pool_pre_ping=True,    # Validate connections before use
+                pool_recycle=300,      # Recycle connections every 5 minutes
+            )
         # Create table if it doesn't exist
         Base.metadata.create_all(_engine)
     return _engine

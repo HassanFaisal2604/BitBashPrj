@@ -11,7 +11,9 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
 
     # no Flask-SQLAlchemy integration; models manage their own session
-    CORS(app) # Enable CORS
+    # Enable CORS with specific origins for development
+    CORS(app, origins=['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8000', 'http://127.0.0.1:8000'], 
+         supports_credentials=True, methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 
     # Ensure session is removed after request context ends
     from .api.models import session as orm_session
